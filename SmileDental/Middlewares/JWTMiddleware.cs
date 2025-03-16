@@ -6,6 +6,11 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+/*
+ * Middleware que verifica si el token es válido y si el usuario tiene permisos para acceder a la ruta
+ * por ahora no necesario ya que se puede hacer con el atributo [Authorize(Roles = "")] en los controladores
+ * .NET Provee de un middleware que se encarga de verificar si el token es válido y si el usuario tiene permisos para acceder a la ruta
+ */
 public class JwtMiddleware
 {
     private readonly RequestDelegate _next;

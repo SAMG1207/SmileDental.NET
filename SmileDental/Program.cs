@@ -21,8 +21,8 @@ namespace SmileDental
 
             // Configuración de la autenticación (JWT)
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-       .AddJwtBearer(options =>
-       {
+            .AddJwtBearer(options =>
+            {
            options.TokenValidationParameters = new TokenValidationParameters
            {
                ValidateIssuer = true,
@@ -116,7 +116,7 @@ namespace SmileDental
             app.UseAuthorization();
 
             // Middleware personalizado de JWT (si es necesario)
-            app.UseMiddleware<JwtMiddleware>();
+            // app.UseMiddleware<JwtMiddleware>();
 
             app.MapControllers();
 
