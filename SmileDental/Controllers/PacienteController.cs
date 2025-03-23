@@ -15,17 +15,18 @@ namespace SmileDental.Controllers
     public class PacienteController : ControllerBase
     {
         private readonly IPacienteInterface _userEventsServices;
-        private readonly JWTHandler _jwtHandler;
-        public PacienteController(IPacienteInterface userEventsServices, JWTHandler jWTHandler)  // Inyecta la interfaz, no la clase directamente
+        
+        public PacienteController(IPacienteInterface userEventsServices)  // Inyecta la interfaz, no la clase directamente
         {
             _userEventsServices = userEventsServices;
-            _jwtHandler = jWTHandler;
+            
         }
 
 
         [HttpGet("check-token")]
         public IActionResult CheckToken()
         {
+            // Funcon para proteger la vista de la página
             return Ok(true); // Si llega aquí, significa que el usuario está autenticado y autorizado
         }
 
@@ -47,7 +48,7 @@ namespace SmileDental.Controllers
         [HttpDelete("CancelarCita/{citaId}")]
         public async Task<IActionResult> CancelarCita(int citaId)
         {
-            var pacienteId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
+            //var pacienteId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
             var result = await _userEventsServices.CancelarCita(citaId);
             if (result)
             {

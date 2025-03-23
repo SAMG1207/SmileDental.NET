@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,9 +6,12 @@ using SmileDental.Models;
 using SmileDental.Services;
 using SmileDental.Services.Interfaces;
 using SmileDental.Utils;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Serilog;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 namespace SmileDental
 {
@@ -18,24 +21,34 @@ namespace SmileDental
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Configuración de logging con Serilog
+            builder.Host.UseSerilog((context, config) =>
+            {
+                config.ReadFrom.Configuration(context.Configuration);
+            });
+
+            // Middleware de logging
+            builder.Logging.ClearProviders(); // Elimina los proveedores de logging por defecto
+            builder.Logging.AddConsole(); // Añade un proveedor de logging a la consola
+            builder.Logging.AddDebug(); // Añade un proveedor de logging a la consola
 
             // Configuración de la autenticación (JWT)
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-           options.TokenValidationParameters = new TokenValidationParameters
-           {
-               ValidateIssuer = true,
-               ValidateAudience = true,
-               ValidateLifetime = true,
-               ValidateIssuerSigningKey = true,
-               ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
-               ValidAudience = builder.Configuration["JWTSettings:Audience"],
-               IssuerSigningKey = new SymmetricSecurityKey(
-                   Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:SecretKey"])
-               )
-           };
-       });
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
+                        ValidAudience = builder.Configuration["JWTSettings:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:SecretKey"])
+                        )
+                    };
+                });
 
             // Configuración de CORS
             builder.Services.AddCors(options =>
@@ -63,10 +76,27 @@ namespace SmileDental
             builder.Services.AddScoped<PasswordManager>(); // Servicio para gestionar el hash de contraseñas
 
             // Registrar Servicios e Inyección de dependencias
+            builder.Services.AddScoped<IInfo, Info>();
             builder.Services.AddScoped<IPacienteInterface, PacienteService>();
             builder.Services.AddScoped<IDentistInterface, DentistaService>();
             builder.Services.AddScoped<IAdminInterface, AdminService>();
             builder.Services.AddScoped<IAuthInterface, AuthServices>();
+
+            // Health Checks
+            builder.Services.AddHealthChecks();
+
+            // Rate Limiting
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddPolicy("fixed", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+                        factory: partition => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 10,
+                            Window = TimeSpan.FromSeconds(10)
+                        }));
+            });
 
             // Agregar controladores y otras configuraciones
             builder.Services.AddControllers();
@@ -104,6 +134,26 @@ namespace SmileDental
                 dataContext.Database.Migrate();
             }
 
+            // Middleware de manejo de errores global
+            app.UseExceptionHandler(errorApp =>
+            {
+                errorApp.Run(async context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/json";
+
+                    var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+                    if (exceptionHandlerPathFeature?.Error is not null)
+                    {
+                        await context.Response.WriteAsync(new
+                        {
+                            error = "Ha ocurrido un error inesperado.",
+                            details = exceptionHandlerPathFeature.Error.Message
+                        }.ToString());
+                    }
+                });
+            });
+
             // Configuración del pipeline HTTP
             if (app.Environment.IsDevelopment())
             {
@@ -111,9 +161,24 @@ namespace SmileDental
                 app.UseSwaggerUI();
             }
 
+            // Middleware de seguridad
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Add("X-Frame-Options", "DENY");
+                context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+                await next();
+            });
+
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Rate Limiting
+            app.UseRateLimiter();
+
+            // Health Checks
+            app.MapHealthChecks("/health");
 
             // Middleware personalizado de JWT (si es necesario)
             // app.UseMiddleware<JwtMiddleware>();

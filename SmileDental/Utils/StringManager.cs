@@ -27,5 +27,6 @@ namespace SmileDental.Utils
             string regexPattern = @"^\d{9}$";
             return Regex.IsMatch(telefono, regexPattern);
         }
+
     }
 }

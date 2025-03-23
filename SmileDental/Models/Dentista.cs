@@ -4,7 +4,7 @@ namespace SmileDental.Models
 {
     public class Dentista : UsuarioAbstract
     {
-      
+
         public int EspecialidadId { get; set; }
 
         public bool EsAdmin { get; set; }
@@ -16,6 +16,8 @@ namespace SmileDental.Models
         [ForeignKey("EspecialidadId")]
         public virtual Especialidad Especialidad { get; set; }
 
-        
+        public bool Activo { get; set; }
+
+
     }
 }

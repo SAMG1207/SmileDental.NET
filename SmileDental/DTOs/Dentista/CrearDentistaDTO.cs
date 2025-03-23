@@ -34,6 +34,6 @@ namespace SmileDental.DTOs.Dentista
         public string FotoUrl { get; set; }
 
         public int HoraEntrada { get; set; }
-        public  int HoraSalida { get; set; }
+        public int HoraSalida { get; set; }
     }
 }

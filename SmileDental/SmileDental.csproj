@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Folder Include="DTOs\Paciente\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

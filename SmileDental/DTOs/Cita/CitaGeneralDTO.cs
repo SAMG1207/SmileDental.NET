@@ -10,5 +10,7 @@ namespace SmileDental.DTOs.Cita
         public DateTime Fecha { get; set; }
         public int Hora { get; set; }
 
+        public string? URLCita { get; set; }
+
     }
 }

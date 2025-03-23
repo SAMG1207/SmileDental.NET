@@ -11,7 +11,7 @@ namespace SmileDental.Services
     public class PacienteService : IPacienteInterface
     {
         private readonly ApiDbContext _context;
-        
+
         private readonly PasswordManager _passwordService;
 
         public PacienteService(ApiDbContext context, PasswordManager passwordService)
@@ -38,7 +38,7 @@ namespace SmileDental.Services
 
             // Filtrar los dentistas que no están ocupados en esa hora
             var dentistasLibres = dentistas
-                .Where(d => !citasGeneral.Any(c => c.DentistaId == d.Id && hora >= d.HoraEntrada && hora < d.HoraSalida))
+                .Where(d => !citasGeneral.Any(c => c.DentistaId == d.Id && hora >= d.HoraEntrada && hora < d.HoraSalida && d.Activo == true && d.EsAdmin == false))
                 .ToList();
 
             // Si no hay dentistas libres, retornar null
@@ -51,7 +51,7 @@ namespace SmileDental.Services
             return dentistasLibres[new Random().Next(dentistasLibres.Count)].Id;
         }
 
-        private async Task<List<int>> DentistasGeneralesId() 
+        private async Task<List<int>> DentistasGeneralesId()
         {
             try
             {
@@ -111,7 +111,7 @@ namespace SmileDental.Services
 
         }
 
-        private async Task<bool>PacienteEstaRegistrado(int pacienteId)
+        private async Task<bool> PacienteEstaRegistrado(int pacienteId)
         {
             var paciente = await _context.Pacientes.FindAsync(pacienteId);
             return paciente != null;
@@ -128,11 +128,11 @@ namespace SmileDental.Services
 
             try
             {
-                if(await CitaFutura(pacienteId))
+                if (await CitaFutura(pacienteId))
                 {
                     throw new ArgumentException("El paciente ya tiene una cita futura.");
                 }
-                int ? dentistId = await GetDentistIdAvailable( fecha,hora);
+                int? dentistId = await GetDentistIdAvailable(fecha, hora);
                 if (dentistId == null)
                 {
                     throw new ArgumentException("No hay dentistas disponibles en la fecha y hora seleccionadas.");
@@ -148,7 +148,8 @@ namespace SmileDental.Services
                 await _context.Citas.AddAsync(cita);
                 await _context.SaveChangesAsync();
                 return true;
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
 
@@ -169,7 +170,7 @@ namespace SmileDental.Services
                 await _context.SaveChangesAsync();
                 return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
@@ -190,13 +191,13 @@ namespace SmileDental.Services
                 .Where(c => c.PacienteId == pacienteId)
                 .ToListAsync();
 
-                if(citas == null)
+                if (citas == null)
                 {
                     throw new ArgumentException("No hay citas para el paciente.");
                 }
                 return citas;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
@@ -206,7 +207,7 @@ namespace SmileDental.Services
         public async Task<bool> CitaFutura(int pacienteId)
         {
             var paciente = await _context.Pacientes.FindAsync(pacienteId);
-            if(paciente == null)
+            if (paciente == null)
             {
                 throw new ArgumentException("El paciente no existe.");
             }
@@ -227,7 +228,8 @@ namespace SmileDental.Services
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
@@ -247,7 +249,8 @@ namespace SmileDental.Services
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
@@ -262,7 +265,7 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                if(!StringManager.validaTelefono(telefonoDto.Telefono))
+                if (!StringManager.validaTelefono(telefonoDto.Telefono))
                 {
                     throw new ArgumentException("El teléfono ingresado no es válido.");
                 }
@@ -270,7 +273,8 @@ namespace SmileDental.Services
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
@@ -294,12 +298,13 @@ namespace SmileDental.Services
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 throw new ArgumentException(e.Message);
             }
         }
 
-   
+
     }
 }

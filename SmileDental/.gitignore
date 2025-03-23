@@ -9,6 +9,8 @@
 
 appsettings.Development.json
 
+## Ignorar archivos de historias 
+Historias/*.pdf
 
 # User-specific files
 *.rsuser

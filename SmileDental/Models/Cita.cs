@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace SmileDental.Models
@@ -27,6 +27,8 @@ namespace SmileDental.Models
         [JsonIgnore]
         [ForeignKey("DentistaId")]
         public virtual Dentista Dentista { get; set; }
+
+        public string URLCita { get; set; }
 
 
     }

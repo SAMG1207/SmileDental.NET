@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using SmileDental.Utils;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 /*
  * Middleware que verifica si el token es válido y si el usuario tiene permisos para acceder a la ruta
@@ -33,13 +28,13 @@ public class JwtMiddleware
             {
                 var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role);
 
-                if (roleClaim == null 
-                    || 
-                    (roleClaim.Value    !=  "Paciente" 
-                    && roleClaim.Value  !=  "Dentista" 
-                    && roleClaim.Value  !=  "Administrador"
+                if (roleClaim == null
+                    ||
+                    (roleClaim.Value != "Paciente"
+                    && roleClaim.Value != "Dentista"
+                    && roleClaim.Value != "Administrador"
                     )
-                    )  
+                    )
                 {
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                     await context.Response.WriteAsync("Acceso denegado: No tienes permisos para esta operación.");

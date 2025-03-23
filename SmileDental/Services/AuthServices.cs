@@ -81,7 +81,8 @@ namespace SmileDental.Services
                 };
 
                 return true;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return false;
                 // MEJORAR ESTO 
@@ -140,7 +141,7 @@ namespace SmileDental.Services
 
         public async Task<UserDTO> ValidarUsuario([FromBody] LoginDTO loginDTO)
         {
-           switch (loginDTO.tipoUsuario.ToLower())
+            switch (loginDTO.tipoUsuario.ToLower())
             {
                 case "paciente":
                     // Utilizamos FirstOrDefaultAsync para operaciones asincrónicas.
@@ -152,16 +153,16 @@ namespace SmileDental.Services
                         {
                             Id = paciente.Id,
                             Email = paciente.Email,
-                            Role = "Paciente" 
+                            Role = "Paciente"
                         };
                     }
                     break;
 
                 case "dentista":
 
-                    var dentista = await _context.Dentistas.FirstOrDefaultAsync(d=>d.Email == loginDTO.Email);
-                    
-                    if(dentista != null && _passwordService.VerifyHashedPassword(dentista.Password, loginDTO.Password))
+                    var dentista = await _context.Dentistas.FirstOrDefaultAsync(d => d.Email == loginDTO.Email);
+
+                    if (dentista != null && _passwordService.VerifyHashedPassword(dentista.Password, loginDTO.Password))
                     {
                         return new UserDTO
                         {
@@ -174,9 +175,9 @@ namespace SmileDental.Services
 
                 case "administrador":
 
-                    var administrador = await _context.Dentistas.FirstOrDefaultAsync(d=> d.Email == loginDTO.Email && d.EsAdmin == true);
+                    var administrador = await _context.Dentistas.FirstOrDefaultAsync(d => d.Email == loginDTO.Email && d.EsAdmin == true);
 
-                    if(administrador != null && _passwordService.VerifyHashedPassword(administrador.Password, loginDTO.Password))
+                    if (administrador != null && _passwordService.VerifyHashedPassword(administrador.Password, loginDTO.Password))
                     {
                         return new UserDTO
                         {
@@ -193,7 +194,7 @@ namespace SmileDental.Services
 
         private async Task<Paciente> GetPacienteByDni(string dni) => await _context.Pacientes.FirstOrDefaultAsync(p => p.Dni == dni);
 
-   
+
     }
-    
+
 }
