@@ -28,7 +28,7 @@ namespace SmileDental.Models
         [ForeignKey("DentistaId")]
         public virtual Dentista Dentista { get; set; }
 
-        public string URLCita { get; set; }
+        public string? URLCita { get; set; }
 
 
     }

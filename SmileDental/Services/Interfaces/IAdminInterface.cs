@@ -25,9 +25,9 @@ namespace SmileDental.Services.Interfaces
         Task<bool> RegistrarDentista(RegistrarDentistaDTO registrarDentistaDTO);
 
         Task<bool> SubirFotoEspecialista(SubirFotoDTO subirFotoDTO);
-        Task<List<Dentista>> VerDentistas();
+        Task<List<UsuarioDTO>> VerDentistas();
 
-        Task<List<Paciente>> VerPacientes();
+        Task<List<UsuarioDTO>> VerPacientes();
 
 
         Task<List<Cita>> VerCitasPacientes(string dniPaciente);

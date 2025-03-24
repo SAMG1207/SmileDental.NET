@@ -20,8 +20,6 @@ namespace SmileDental
             modelBuilder.Entity<Dentista>().ToTable("Dentistas");  // Asegúrate de que la tabla para Dentista sea explícita
             modelBuilder.Entity<Paciente>().ToTable("Pacientes");  // Lo mismo para Pacientes
 
-
-
             // Configuración de relaciones
             modelBuilder.Entity<Cita>()
                 .HasOne(c => c.Paciente)

@@ -18,12 +18,14 @@ namespace SmileDental.Controllers
     [Route("api/[controller]")]
     public class DentistaController : ControllerBase
     {
-        private readonly JWTHandler _jwtHandler;
+        //private readonly JWTHandler _jwtHandler;
         private readonly IDentistInterface _dentistInterface;
 
-        public DentistaController(JWTHandler jwtHandler, IDentistInterface dentistInterface)
+        public DentistaController(
+            //JWTHandler jwtHandler,
+            IDentistInterface dentistInterface)
         {
-            _jwtHandler = jwtHandler;
+           // _jwtHandler = jwtHandler;
             _dentistInterface = dentistInterface;
         }
 
@@ -63,7 +65,7 @@ namespace SmileDental.Controllers
                 return BadRequest("No se recibió ningún archivo.");
             }
 
-            IFormFile file = Request.Form.Files[0];
+            //IFormFile file = Request.Form.Files[0]; NO SE UTILIZA, SUGERENCIA DE COPILOT, FALTA PROBAR 
 
             var result = await _dentistInterface.SubirInformeCita(subirCitaDTO);
 

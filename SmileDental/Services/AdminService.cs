@@ -119,7 +119,7 @@ namespace SmileDental.Services
                     throw new ArgumentException("Especialidad no válida");
                 }
 
-                Dentista dentista = new Dentista
+                Dentista dentista = new()
                 {
                     Nombre = registrarDentistaDTO.Nombre,
                     Apellido = registrarDentistaDTO.Apellido,
@@ -184,7 +184,7 @@ namespace SmileDental.Services
         {
             try
             {
-                List<Cita> citas = new List<Cita>();
+                var citas = new List<Cita>();
                 if (fechaFinal == null)
                 {
                     citas = await _context.Citas.Where(c => c.Fecha >= fechaInicial).ToListAsync();
@@ -196,7 +196,7 @@ namespace SmileDental.Services
             catch (Exception e)
             {
                 Log.Error($"Error al obtener las citas por fecha: {e.Message}");
-                return new List<Cita>();
+                return [];
             }
         }
 
@@ -233,31 +233,59 @@ namespace SmileDental.Services
 
         }
 
-        public async Task<List<Dentista>> VerDentistas()
+        public async Task<List<UsuarioDTO>> VerDentistas()
         {
             try
             {
                 var dentistas = await _context.Dentistas.ToListAsync();
-                return dentistas;
+                var usuarioDTOs = new List<UsuarioDTO>();
+                foreach (Dentista dentista in dentistas)
+                {
+                    var usuarioDTO = new UsuarioDTO
+                    {
+                        id = dentista.Id,
+                        nombre = dentista.Nombre,
+                        apellido = dentista.Apellido,
+                        fechaNacimiento = dentista.FechaNacimiento,
+                        email = dentista.Email
+                    };
+
+                    usuarioDTOs.Add(usuarioDTO);
+                }
+                return usuarioDTOs;
             }
             catch (Exception e)
             {
                 Log.Error($"Error al obtener los dentistas: {e.Message}");
-                return new List<Dentista>();
+                return new List<UsuarioDTO>();
             }
         }
 
-        public async Task<List<Paciente>> VerPacientes()
+        public async Task<List<UsuarioDTO>> VerPacientes()
         {
             try
             {
                 var pacientes = await _context.Pacientes.ToListAsync();
-                return pacientes;
+                var usuarioDTOs = new List<UsuarioDTO>();
+                foreach(Paciente paciente in pacientes)
+                {
+                    var UsuarioDTO = new UsuarioDTO
+                    {
+                        id = paciente.Id,
+                        nombre = paciente.Nombre,
+                        apellido = paciente.Apellido,
+                        email = paciente.Email,
+                        fechaNacimiento = paciente.FechaNacimiento
+
+                    };
+                    usuarioDTOs.Add(UsuarioDTO);
+                }
+                return usuarioDTOs;
             }
             catch (Exception e)
             {
                 Log.Error($"Error al obtener los pacientes: {e.Message}");
-                return new List<Paciente>();
+                return new List<UsuarioDTO>();
             }
         }
 
