@@ -44,7 +44,7 @@ namespace SmileDental.Controllers
                     return BadRequest("No se recibió ningún archivo.");
                 }
 
-                IFormFile file = Request.Form.Files[0];
+                //IFormFile file = Request.Form.Files[0];
 
                 // Llamada a tu lógica para subir el archivo y asociarlo con el dentista.
                 var result = await _adminInterface.SubirFotoEspecialista( subirFotoDTO);

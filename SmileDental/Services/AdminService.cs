@@ -64,61 +64,71 @@ namespace SmileDental.Services
             return true;
         }
 
+        private async Task<bool> VerificarRegistroDentista(RegistrarDentistaDTO registrarDentistaDTO)
+        {
+            // Validaciones de datos de entrada
+            ValidarDatosPersonales(registrarDentistaDTO);
+
+            // Validar horario de trabajo
+            if (registrarDentistaDTO.HoraEntrada < 8 || registrarDentistaDTO.HoraSalida > 21 || registrarDentistaDTO.HoraEntrada >= registrarDentistaDTO.HoraSalida)
+            {
+                throw new ArgumentException("Horario de entrada o salida no válido.");
+            }
+
+            // Validar si ya hay un administrador
+            if (registrarDentistaDTO.EsAdmin && await _context.Dentistas.AnyAsync(d => d.EsAdmin))
+            {
+                throw new ArgumentException("Ya hay un administrador registrado.");
+            }
+
+            // Validar si la especialidad existe
+            bool especialidadExiste = await _context.Especialidades.AnyAsync(e => e.Nombre == registrarDentistaDTO.Especialidad);
+            if (!especialidadExiste)
+            {
+                throw new ArgumentException("Especialidad no válida.");
+            }
+
+            return true;
+        }
+
+        // Método auxiliar para validar datos personales, Debe ser movido a otra interfaz y usado en todos los demas servicios.
+        private void ValidarDatosPersonales(RegistrarDentistaDTO registrarDentistaDTO)
+        {
+            if (!StringManager.validaNombre(registrarDentistaDTO.Nombre) || !StringManager.validaNombre(registrarDentistaDTO.Apellido))
+                throw new ArgumentException("Nombre o apellido no válido.");
+
+            if (!StringManager.validaDni(registrarDentistaDTO.Dni))
+                throw new ArgumentException("DNI no válido.");
+
+            if (!StringManager.validaTelefono(registrarDentistaDTO.Telefono))
+                throw new ArgumentException("Teléfono no válido.");
+
+            if (!StringManager.validaPassword(registrarDentistaDTO.Password))
+                throw new ArgumentException("Contraseña no válida.");
+
+            if (registrarDentistaDTO.FechaNacimiento >= DateTime.Now)
+                throw new ArgumentException("Fecha de nacimiento no válida.");
+        }
+
 
         public async Task<bool> RegistrarDentista(RegistrarDentistaDTO registrarDentistaDTO)
         {
             try
             {
-                if (!StringManager.validaNombre(registrarDentistaDTO.Nombre) || !StringManager.validaNombre(registrarDentistaDTO.Apellido))
+                if (!await VerificarRegistroDentista(registrarDentistaDTO))
                 {
-                    throw new ArgumentException("Nombre o apellido no válido");
+                    return false;
                 }
+                int especialidadId = await _context.Especialidades
+                .Where(e => e.Nombre == registrarDentistaDTO.Especialidad)
+                .Select(e => e.Id)
+                .FirstOrDefaultAsync();
 
-                if(!StringManager.validaDni(registrarDentistaDTO.Dni))
-                {
-                    throw new ArgumentException("Dni no válido");
-                }
-
-                if (!StringManager.validaTelefono(registrarDentistaDTO.Telefono))
-                {
-                    throw new ArgumentException("Teléfono no válido");
-                }
-
-                if (!StringManager.validaPassword(registrarDentistaDTO.Password))
-                {
-                    throw new ArgumentException("Contraseña no válida");
-                }
-
-                if (registrarDentistaDTO.HoraEntrada < 8|| registrarDentistaDTO.HoraEntrada > 21 || registrarDentistaDTO.HoraSalida < 8 || registrarDentistaDTO.HoraSalida > 21)
-                {
-                    throw new ArgumentException("Horario no válido");
-                }
-
-                if (registrarDentistaDTO.HoraEntrada >= registrarDentistaDTO.HoraSalida)
-                {
-                    throw new ArgumentException("Hora de entrada es mas tarde que la de salida");
-                }
-
-                if (registrarDentistaDTO.FechaNacimiento >= DateTime.Now)
-                {
-                    throw new ArgumentException("Fecha de nacimiento no válida");
-                }
-
-                if(registrarDentistaDTO.EsAdmin == true)
-                {
-                    bool yaHayAdmin = await _context.Dentistas.AnyAsync(d => d.EsAdmin == true);
-                    if (yaHayAdmin)
-                    {
-                        throw new ArgumentException("Ya hay un administrador registrado");
-                    }
-                }
-
-                int especialidadId = await _context.Especialidades.Where(e => e.Nombre == registrarDentistaDTO.Especialidad).Select(e => e.Id).FirstOrDefaultAsync();
                 if (especialidadId == 0)
                 {
-                    throw new ArgumentException("Especialidad no válida");
+                    Log.Error("Especialidad no válida.");
+                    return false;
                 }
-
                 Dentista dentista = new()
                 {
                     Nombre = registrarDentistaDTO.Nombre,
@@ -139,9 +149,6 @@ namespace SmileDental.Services
                 _context.Dentistas.Add(dentista);
                 await _context.SaveChangesAsync();
                 return true;
-
-
-
             }
             catch (ArgumentException e)
             {

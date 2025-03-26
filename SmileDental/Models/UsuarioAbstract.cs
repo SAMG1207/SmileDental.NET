@@ -32,6 +32,7 @@ namespace SmileDental.Models
         [Phone]
         public string Telefono { get; set; }
 
-        public virtual ICollection<Cita> Citas { get; set; }
+        public virtual ICollection<Cita> Citas { get; set; } = new List<Cita>();
+
     }
 }
