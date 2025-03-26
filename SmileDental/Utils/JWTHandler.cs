@@ -20,13 +20,18 @@ namespace SmileDental.Utils
 
         public string GenerarToken(int userId, string email, string role, int expireMinutes = 30)
         {
+            HashSet<string> roles = new () { "Paciente", "Dentista", "Administrador" };
+            if (!roles.Contains(role))
+            {
+                throw new ArgumentException("El rol no es admitido, no se ha generado el token");
+            }
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                    new Claim(ClaimTypes.Email, email),
+                    new Claim(ClaimTypes.Role, role),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

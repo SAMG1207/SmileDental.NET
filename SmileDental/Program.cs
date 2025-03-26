@@ -109,6 +109,7 @@ namespace SmileDental
             app.UseCors("AllowAll");
 
             // Configurar la base de datos y migraciones
+            /*
             using (var scope = app.Services.CreateScope())
             {
                 var dataContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
@@ -133,6 +134,7 @@ namespace SmileDental
                 // Migraciones de base de datos
                 dataContext.Database.Migrate();
             }
+            */
 
             // Middleware de manejo de errores global
             app.UseExceptionHandler(errorApp =>
