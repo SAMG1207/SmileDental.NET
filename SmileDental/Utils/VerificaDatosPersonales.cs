@@ -3,7 +3,7 @@ using SmileDental.DTOs.Administrador;
 
 namespace SmileDental.Utils
 {
-    public class VerificaDatosPersonales
+    public static class VerificaDatosPersonales
     {
         public static bool ValidarDatosPersonales(DatosPersonalesDTO datosPersonalesDTO)
         {

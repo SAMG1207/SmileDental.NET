@@ -2,7 +2,7 @@
 
 namespace SmileDental.Utils
 {
-    public class StringManager
+    public static class StringManager
     {
         public static bool validaNombre(string nombre)
         {
