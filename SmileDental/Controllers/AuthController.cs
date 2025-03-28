@@ -36,7 +36,7 @@ namespace SmileDental.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Registro([FromBody] CrearPacienteDTO crearPacienteDTO)
+        public async Task<IActionResult> Registro([FromBody] DatosPersonalesDTO crearPacienteDTO)
         {
             try
             {

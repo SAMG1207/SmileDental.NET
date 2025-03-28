@@ -67,7 +67,9 @@ namespace SmileDental.Services
         private async Task<bool> VerificarRegistroDentista(RegistrarDentistaDTO registrarDentistaDTO)
         {
             // Validaciones de datos de entrada
-            ValidarDatosPersonales(registrarDentistaDTO);
+
+            VerificaDatosPersonales.ValidarDatosPersonales(registrarDentistaDTO.DatosPersonales);
+            
 
             // Validar horario de trabajo
             if (registrarDentistaDTO.HoraEntrada < 8 || registrarDentistaDTO.HoraSalida > 21 || registrarDentistaDTO.HoraEntrada >= registrarDentistaDTO.HoraSalida)
@@ -91,25 +93,6 @@ namespace SmileDental.Services
             return true;
         }
 
-        // Método auxiliar para validar datos personales, Debe ser movido a otra interfaz y usado en todos los demas servicios.
-        private void ValidarDatosPersonales(RegistrarDentistaDTO registrarDentistaDTO)
-        {
-            if (!StringManager.validaNombre(registrarDentistaDTO.Nombre) || !StringManager.validaNombre(registrarDentistaDTO.Apellido))
-                throw new ArgumentException("Nombre o apellido no válido.");
-
-            if (!StringManager.validaDni(registrarDentistaDTO.Dni))
-                throw new ArgumentException("DNI no válido.");
-
-            if (!StringManager.validaTelefono(registrarDentistaDTO.Telefono))
-                throw new ArgumentException("Teléfono no válido.");
-
-            if (!StringManager.validaPassword(registrarDentistaDTO.Password))
-                throw new ArgumentException("Contraseña no válida.");
-
-            if (registrarDentistaDTO.FechaNacimiento >= DateTime.Now)
-                throw new ArgumentException("Fecha de nacimiento no válida.");
-        }
-
 
         public async Task<bool> RegistrarDentista(RegistrarDentistaDTO registrarDentistaDTO)
         {
@@ -131,15 +114,15 @@ namespace SmileDental.Services
                 }
                 Dentista dentista = new()
                 {
-                    Nombre = registrarDentistaDTO.Nombre,
-                    Apellido = registrarDentistaDTO.Apellido,
-                    Email = registrarDentistaDTO.Email,
-                    Password = _passwordManager.HashPassword(registrarDentistaDTO.Password),
+                    Nombre = registrarDentistaDTO.DatosPersonales.Nombre,
+                    Apellido = registrarDentistaDTO.DatosPersonales.Apellido,
+                    Email = registrarDentistaDTO.DatosPersonales.Email,
+                    Password = _passwordManager.HashPassword(registrarDentistaDTO.DatosPersonales.Password),
                     EspecialidadId = especialidadId,
-                    Dni = registrarDentistaDTO.Dni,
+                    Dni = registrarDentistaDTO.DatosPersonales.Dni,
                     FotoUrl = "pending",
-                    Telefono = registrarDentistaDTO.Telefono,
-                    FechaNacimiento = registrarDentistaDTO.FechaNacimiento,
+                    Telefono = registrarDentistaDTO.DatosPersonales.Nombre,
+                    FechaNacimiento = registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
                     Activo = registrarDentistaDTO.Activo,
                     EsAdmin = registrarDentistaDTO.EsAdmin,
                     HoraEntrada = registrarDentistaDTO.HoraEntrada,
