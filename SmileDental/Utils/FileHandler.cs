@@ -4,7 +4,7 @@ using SmileDental.DTOs.Dentista;
 
 namespace SmileDental.Utils
 {
-    public class FileHandler
+    public static class FileHandler
     {
         // Usamos una ruta fuera de wwwroot para los archivos no estáticos
         private static readonly string BasePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");

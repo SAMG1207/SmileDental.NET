@@ -8,19 +8,22 @@ namespace SmileDental.Utils
         public static bool ValidarDatosPersonales(DatosPersonalesDTO datosPersonalesDTO)
         {
             if (!StringManager.validaNombre(datosPersonalesDTO.Nombre) || !StringManager.validaNombre(datosPersonalesDTO.Apellido))
+            {
                 throw new ArgumentException("Nombre o apellido no válido.");
+            }
+                
 
-            if (!StringManager.validaDni(datosPersonalesDTO.Dni))
-                throw new ArgumentException("DNI no válido.");
+            if (!StringManager.validaDni(datosPersonalesDTO.Dni)) { throw new ArgumentException("DNI no válido."); }
+                
 
-            if (!StringManager.validaTelefono(datosPersonalesDTO.Telefono))
-                throw new ArgumentException("Teléfono no válido.");
+            if (!StringManager.validaTelefono(datosPersonalesDTO.Telefono)) { throw new ArgumentException("Teléfono no válido."); }
+                
 
-            if (!StringManager.validaPassword(datosPersonalesDTO.Password))
-                throw new ArgumentException("Contraseña no válida.");
+            if (!StringManager.validaPassword(datosPersonalesDTO.Password)) { throw new ArgumentException("Contraseña no válida."); }
+                
 
-            if (datosPersonalesDTO.FechaDeNacimiento >= DateTime.Now)
-                throw new ArgumentException("Fecha de nacimiento no válida.");
+            if (datosPersonalesDTO.FechaDeNacimiento >= DateTime.Now) { throw new ArgumentException("Fecha de nacimiento no válida."); }
+                
 
             int edad = DateTime.Now.Year - datosPersonalesDTO.FechaDeNacimiento.Year;
 

@@ -117,6 +117,13 @@ namespace SmileDental.Controllers
             return Ok(citas);
         }
 
+        [HttpGet("citas-fecha/{fechaInicial}")]
+        public async Task<IActionResult> VerCitaPorFecha([FromQuery] DateTime fechaInicial)
+        {
+            var citas = await _adminInterface.VerCitaPorFecha(fechaInicial);
+            return Ok(citas);
+        }
+        
         [HttpPost("agendar-cita")]
         public async Task<IActionResult> AgendarCitaEspecialidad([FromBody] Cita cita)
         {
