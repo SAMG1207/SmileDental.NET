@@ -34,8 +34,9 @@ namespace SmileDental.Services.Interfaces
 
         Task<List<Cita>> VerCitasDentistas(int idDentista);
 
-        Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial, DateTime? fechaFinal);
+        Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial, DateTime fechaFinal);
 
+        Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial);
         Task<bool> AgendarCitaEspecialidad(Cita cita);
 
         Task<bool> DarDeBajaDentista(int idDentista);

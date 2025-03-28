@@ -155,6 +155,10 @@ namespace SmileDental.Services
                 if(result.Success)
                 {
                     var dentista = await _context.Dentistas.FindAsync(subirFotoDTO.DentistaId);
+                    if ( dentista != null )
+                    {
+                        throw new Exception("Dentista no encontrado");
+                    }
                     dentista.FotoUrl = result.FileName;
                     await _context.SaveChangesAsync();
                     return true;
@@ -170,17 +174,15 @@ namespace SmileDental.Services
            
         }
 
-        public async Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial, DateTime? fechaFinal)
+        public async Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial, DateTime fechaFinal)
         {
             try
             {
-                var citas = new List<Cita>();
-                if (fechaFinal == null)
+                if(fechaInicial > fechaFinal)
                 {
-                    citas = await _context.Citas.Where(c => c.Fecha >= fechaInicial).ToListAsync();
-                    return citas;
+                    throw new ArgumentException("La fecha final debe ser mas reciente que la inicial");
                 }
-                citas = await _context.Citas.Where(c => c.Fecha >= fechaInicial && c.Fecha <= fechaFinal).ToListAsync();
+                var citas = await _context.Citas.Where(c => c.Fecha >= fechaInicial && c.Fecha <= fechaFinal).ToListAsync();
                 return citas;
             }
             catch (Exception e)
@@ -279,6 +281,16 @@ namespace SmileDental.Services
             }
         }
 
-     
+        public async Task<List<Cita>> VerCitaPorFecha(DateTime fechaInicial)
+        {
+            try
+            {
+                var citas = await _context.Citas.Where(c => c.Fecha > fechaInicial).ToListAsync();
+                return citas;
+            }catch (Exception e)
+            {
+                return new List<Cita>();
+            }
+        }
     }
 }

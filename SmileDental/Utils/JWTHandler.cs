@@ -18,8 +18,9 @@ namespace SmileDental.Utils
             _audience = audience;
         }
 
-        public string GenerarToken(int userId, string email, string role, int expireMinutes = 30)
+        public string GenerarToken(int userId, string email, string role)
         {
+            int expireMinutes = 30;
             HashSet<string> roles = new () { "Paciente", "Dentista", "Administrador" };
             if (!roles.Contains(role))
             {
