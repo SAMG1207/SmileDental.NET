@@ -7,6 +7,12 @@ namespace SmileDental.Utils
     {
         public static bool ValidarDatosPersonales(DatosPersonalesDTO datosPersonalesDTO)
         {
+            if(datosPersonalesDTO == null)
+            {
+                throw new ArgumentNullException(nameof(datosPersonalesDTO), "El objeto de datos personales no puede ser nulo.");
+            }
+
+
             if (!StringManager.validaNombre(datosPersonalesDTO.Nombre) || !StringManager.validaNombre(datosPersonalesDTO.Apellido))
             {
                 throw new ArgumentException("Nombre o apellido no válido.");

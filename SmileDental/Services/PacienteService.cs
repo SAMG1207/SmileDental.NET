@@ -142,7 +142,8 @@ namespace SmileDental.Services
                     PacienteId = pacienteId,
                     DentistaId = dentistId.Value,
                     Fecha = fecha,
-                    Hora = hora
+                    Hora = hora,
+                    URLCita ="pending"
                 };
 
                 await _context.Citas.AddAsync(cita);
