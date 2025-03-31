@@ -10,5 +10,7 @@ namespace SmileDental.Services.Interfaces
         Task<List<Cita>> VerCitas(int dentistaId);
         Task<bool> SubirInformeCita(SubirCitaDTO subirCitaDTO);
         Task<List<CitaPacienteDTO>> verCitasPaciente(string dniPaciente);
+
+        Task<List<CitaPacienteDTO>> VerCitasPorFecha(int dentistaId, DateTime fecha);
     }
 }

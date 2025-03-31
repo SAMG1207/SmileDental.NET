@@ -56,7 +56,8 @@ namespace SmileDental
                 options.AddPolicy("AllowAll",
                     policy => policy
                         .AllowAnyOrigin()   // Permite cualquier origen
-                        .AllowAnyMethod()   // Permite cualquier método HTTP (GET, POST, etc.)
+                        .AllowAnyMethod()
+                        // Permite cualquier método HTTP (GET, POST, etc.)
                         .AllowAnyHeader()); // Permite cualquier encabezado
             });
 
@@ -77,9 +78,13 @@ namespace SmileDental
 
             // Registrar Servicios e Inyección de dependencias
             builder.Services.AddScoped<IInfo, Info>();
+
             builder.Services.AddScoped<IPacienteInterface, PacienteService>();
             builder.Services.AddScoped<IDentistInterface, DentistaService>();
             builder.Services.AddScoped<IAdminInterface, AdminService>();
+            builder.Services.AddScoped<IGetNombre, PacienteService>();
+            builder.Services.AddScoped<IGetNombre, DentistaService>();
+            builder.Services.AddScoped<IGetNombre, AdminService>();
             builder.Services.AddScoped<IAuthInterface, AuthServices>();
 
             // Health Checks

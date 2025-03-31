@@ -10,7 +10,7 @@ using Sprache;
 
 namespace SmileDental.Services
 {
-    public class AdminService : IAdminInterface
+    public class AdminService : IAdminInterface, IGetNombre
     {
 
         private readonly ApiDbContext _context;
@@ -291,6 +291,16 @@ namespace SmileDental.Services
             {
                 return new List<Cita>();
             }
+        }
+
+        public async Task<string> GetNombre(int id)
+        {
+            string nombre = await _context.Dentistas
+           .Where(d => d.Id == id)
+           .Select(d => $"{d.Nombre} {d.Apellido}")
+           .FirstOrDefaultAsync();
+
+            return nombre;
         }
     }
 }

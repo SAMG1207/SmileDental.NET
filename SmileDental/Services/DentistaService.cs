@@ -9,13 +9,23 @@ using SmileDental.Utils;
 
 namespace SmileDental.Services
 {
-    public class DentistaService : IDentistInterface
+    public class DentistaService : IDentistInterface, IGetNombre
     {
         private readonly ApiDbContext _context;
 
         public DentistaService(ApiDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<string> GetNombre(int id)
+        {
+            string nombre = await _context.Dentistas
+                .Where(d => d.Id == id)  
+                .Select(d => $"{d.Nombre} {d.Apellido}") 
+                .FirstOrDefaultAsync();
+
+            return nombre;
         }
 
         public async Task<bool> PacienteEstaRegistrado(string dniPaciente)
@@ -93,8 +103,8 @@ namespace SmileDental.Services
                         citaId = cita.Id,
                         fecha = cita.Fecha,
                         hora = cita.Hora,
-                        nombreDentista = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Nombre).FirstOrDefaultAsync(),
-                        apellidoDentista = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Apellido).FirstOrDefaultAsync(),
+                        nombreInteresado = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Nombre).FirstOrDefaultAsync(),
+                        apellidoInteresado = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Apellido).FirstOrDefaultAsync(),
                         urlCita = cita.URLCita
                     });
                 }
@@ -109,6 +119,31 @@ namespace SmileDental.Services
             }
         }
 
-    
+        public async Task<List<CitaPacienteDTO>> VerCitasPorFecha(int dentistaId, DateTime fecha)
+        {
+            try
+            {
+                var citas = await _context.Citas.Where(c => c.DentistaId == dentistaId && c.Fecha == fecha).ToListAsync();
+                var citasDTO = new List<CitaPacienteDTO>();
+                foreach (var cita in citas)
+                {
+                    citasDTO.Add(new CitaPacienteDTO
+                    {
+                        citaId = cita.Id,
+                        fecha = cita.Fecha,
+                        hora = cita.Hora,
+                        nombreInteresado = _context.Pacientes.Where(p => p.Id == cita.PacienteId).Select(p => p.Nombre).FirstOrDefault(),
+                        apellidoInteresado = _context.Pacientes.Where(p => p.Id == cita.PacienteId).Select(p => p.Apellido).FirstOrDefault(),
+                        urlCita = cita.URLCita
+                    });
+                }
+                return citasDTO;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Error al obtener las citas por fecha para el dentista {dentistaId}: {e.Message}");
+                return new List<CitaPacienteDTO>();
+            }
+        }
     }
 }

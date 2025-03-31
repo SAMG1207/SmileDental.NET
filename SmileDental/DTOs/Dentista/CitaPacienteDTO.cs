@@ -5,9 +5,9 @@ namespace SmileDental.DTOs.Dentista
     public class CitaPacienteDTO
     {
         public int citaId { get; set; }
-        public string nombreDentista { get; set; }
+        public string nombreInteresado { get; set; } // puede ser dentista o paciente
 
-        public string apellidoDentista { get; set; }
+        public string apellidoInteresado { get; set; } // puede ser dentista o paciente
 
         public DateTime fecha { get; set; }
 

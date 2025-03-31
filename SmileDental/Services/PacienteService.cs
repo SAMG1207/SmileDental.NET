@@ -8,7 +8,7 @@ using SmileDental.Utils;
 namespace SmileDental.Services
 {
     //ESTE CONTROLADOR DEBE ESTAR RESTRINGIDO POR EL TOKEN Y SOLO A LOS PACIENTES
-    public class PacienteService : IPacienteInterface
+    public class PacienteService : IPacienteInterface, IGetNombre
     {
         private readonly ApiDbContext _context;
 
@@ -305,6 +305,9 @@ namespace SmileDental.Services
             }
         }
 
-
+        public Task<string> GetNombre(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

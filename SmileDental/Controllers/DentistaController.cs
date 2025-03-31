@@ -13,20 +13,23 @@ namespace SmileDental.Controllers
 
 
 
-   // [Authorize(Roles = "Dentista")]
+    [Authorize(Roles = "Dentista")]
     [ApiController]
     [Route("api/[controller]")]
     public class DentistaController : ControllerBase
     {
         //private readonly JWTHandler _jwtHandler;
         private readonly IDentistInterface _dentistInterface;
+        private readonly IGetNombre _getNombre;
 
         public DentistaController(
             //JWTHandler jwtHandler,
-            IDentistInterface dentistInterface)
+            IDentistInterface dentistInterface,
+            IGetNombre getNombre)
         {
            // _jwtHandler = jwtHandler;
             _dentistInterface = dentistInterface;
+            _getNombre = getNombre;
         }
 
 
@@ -35,6 +38,14 @@ namespace SmileDental.Controllers
         {
             // Funcon para proteger la vista de la página
             return Ok(true); // Si llega aquí, significa que el usuario está autenticado y autorizado
+        }
+
+        [HttpGet("getName")]
+        public async Task<IActionResult> GetNombre()
+        {
+            int dentistaId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
+            string nombre = await _getNombre.GetNombre(dentistaId);
+            return Ok(new { nombreUsuario = nombre });
         }
 
         [HttpPost("subirInformeCita")]
@@ -103,7 +114,7 @@ namespace SmileDental.Controllers
                 var result = await _dentistInterface.VerCitas(dentistaId);
                 if(result.Count == 0)
                 {
-                    return NotFound("No hay citas");
+                    return NotFound(new { message = "No hay citas disponibles" });
                 }
                 return Ok(result);
 
@@ -116,6 +127,18 @@ namespace SmileDental.Controllers
 
         }
 
+        [HttpGet("VerCitasFecha/{fecha}")]
+        public async Task<IActionResult> VerCitasPorFecha(DateTime fecha)
+        {
+            int dentistaId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
+            var results = await _dentistInterface.VerCitasPorFecha(dentistaId, fecha);
+            if(results.Count == 0)
+            {
+                return NotFound(new { message = "No hay citas en esta fecha" });
+            }
+            return Ok(results);
+        }
+
         [HttpGet("CitasPaciente/{pacienteDNI}")]
         public async Task<IActionResult> CitasPaciente(string pacienteDNI)
         {
@@ -123,7 +146,8 @@ namespace SmileDental.Controllers
             {
                 var result = await _dentistInterface.verCitasPaciente(pacienteDNI);
                 return Ok(result);
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 Log.Error($"Error al ver las citas del paciente: {e.Message}");
                 return BadRequest("Error al ver las citas del paciente");
