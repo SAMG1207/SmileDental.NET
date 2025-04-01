@@ -32,6 +32,10 @@ namespace SmileDental.Controllers
             _getNombre = getNombre;
         }
 
+        private int GetDentistaId()
+        {
+            return int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        }
 
         [HttpGet("check-token")]
         public IActionResult CheckToken()
@@ -43,8 +47,8 @@ namespace SmileDental.Controllers
         [HttpGet("getName")]
         public async Task<IActionResult> GetNombre()
         {
-            int dentistaId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
-            string nombre = await _getNombre.GetNombre(dentistaId);
+           
+            string nombre = await _getNombre.GetNombre(GetDentistaId());
             return Ok(new { nombreUsuario = nombre });
         }
 
@@ -105,33 +109,28 @@ namespace SmileDental.Controllers
             return File(fileBytes, "application/pdf", urlHistoria);
         }
 
-        [HttpGet("VerCitas")]
-        public async Task<IActionResult> VerCitas()
+        [HttpGet("paginas")]
+        public async Task<IActionResult> NumeroDePaginas()
         {
-            try
-            {
-                var dentistaId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
-                var result = await _dentistInterface.VerCitas(dentistaId);
+                var result = await _dentistInterface.NumeroDePaginas(GetDentistaId());
+                return Ok(new { numeroPaginas = result });
+        }
+
+        [HttpGet("VerCitas/{numeroDePagina}")]
+        public async Task<IActionResult> VerCitas(int numeroDePagina)
+        {
+                var result = await _dentistInterface.VerCitas(GetDentistaId(), numeroDePagina);
                 if(result.Count == 0)
                 {
                     return NotFound(new { message = "No hay citas disponibles" });
                 }
                 return Ok(result);
-
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Error al ver las citas: {e.Message}");
-                return BadRequest("Error al ver las citas");
-            }
-
         }
 
         [HttpGet("VerCitasFecha/{fecha}")]
         public async Task<IActionResult> VerCitasPorFecha(DateTime fecha)
         {
-            int dentistaId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
-            var results = await _dentistInterface.VerCitasPorFecha(dentistaId, fecha);
+            var results = await _dentistInterface.VerCitasPorFecha(GetDentistaId(), fecha);
             if(results.Count == 0)
             {
                 return NotFound(new { message = "No hay citas en esta fecha" });
@@ -142,16 +141,10 @@ namespace SmileDental.Controllers
         [HttpGet("CitasPaciente/{pacienteDNI}")]
         public async Task<IActionResult> CitasPaciente(string pacienteDNI)
         {
-            try
-            {
+
                 var result = await _dentistInterface.verCitasPaciente(pacienteDNI);
                 return Ok(result);
-            }
-            catch(Exception e)
-            {
-                Log.Error($"Error al ver las citas del paciente: {e.Message}");
-                return BadRequest("Error al ver las citas del paciente");
-            }
+      
         }
 
     }

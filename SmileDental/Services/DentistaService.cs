@@ -28,6 +28,13 @@ namespace SmileDental.Services
             return nombre;
         }
 
+        public async Task<int> NumeroDePaginas(int dentistaId)
+        {
+            List<Cita> citas = await _context.Citas.Where(c => c.DentistaId == dentistaId).ToListAsync();
+            return  Enumerador.numeroDePaginas(citas.Count());
+
+        }
+
         public async Task<bool> PacienteEstaRegistrado(string dniPaciente)
         {
             try
@@ -67,11 +74,19 @@ namespace SmileDental.Services
             return false;
         }
 
-        public async Task<List<Cita>> VerCitas(int dentistaId)
+        public async Task<List<Cita>> VerCitas(int dentistaId, int pagina)
         {
+            
             try
             {
-                List<Cita> citas = await _context.Citas.Where(c => c.DentistaId == dentistaId).ToListAsync();
+                int citasPorPagina = 10;
+                List<Cita> citas = await _context.Citas
+                    .Where(c => c.DentistaId == dentistaId)
+                    .OrderByDescending(c => c.Fecha) 
+                    .Skip((pagina - 1) * citasPorPagina) 
+                    .Take(citasPorPagina) 
+                    .ToListAsync();
+
                 return citas;
             }
             catch (Exception e)

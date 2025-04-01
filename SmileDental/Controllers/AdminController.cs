@@ -12,7 +12,7 @@ namespace SmileDental.Controllers
     //SOLO SE PUEDE ENTRAR SI HAY UN TOKEN VALIDO PARA ADMIN
     // TODOS LOS ENDOPOINTS DEBEN ESTAR PROTEGIDOS EXCEPTO EL DE LOGIN
 
-     [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Administrador")]
     [ApiController]
     [Route("api/[controller]")]
     public class AdminController : ControllerBase
@@ -78,9 +78,10 @@ namespace SmileDental.Controllers
             }
             catch (ArgumentException e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(new { error = e.Message });
             }
         }
+
 
         [HttpGet("dentistas")]
         public async Task<IActionResult> VerDentistas()

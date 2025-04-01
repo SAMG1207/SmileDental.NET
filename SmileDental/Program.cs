@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using System.Text.Json;
 
 namespace SmileDental
 {
@@ -152,11 +153,15 @@ namespace SmileDental
                     var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
                     if (exceptionHandlerPathFeature?.Error is not null)
                     {
-                        await context.Response.WriteAsync(new
+                        var errorResponse = new
                         {
                             error = "Ha ocurrido un error inesperado.",
                             details = exceptionHandlerPathFeature.Error.Message
-                        }.ToString());
+                        };
+
+                        var jsonResponse = JsonSerializer.Serialize(errorResponse);
+
+                        await context.Response.WriteAsync(jsonResponse);
                     }
                 });
             });

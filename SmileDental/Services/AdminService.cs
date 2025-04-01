@@ -64,12 +64,10 @@ namespace SmileDental.Services
             return true;
         }
 
-        private async Task<bool> VerificarRegistroDentista(RegistrarDentistaDTO registrarDentistaDTO)
+        private async Task VerificarRegistroDentista(RegistrarDentistaDTO registrarDentistaDTO)
         {
             // Validaciones de datos de entrada
-
             VerificaDatosPersonales.ValidarDatosPersonales(registrarDentistaDTO.DatosPersonales);
-            
 
             // Validar horario de trabajo
             if (registrarDentistaDTO.HoraEntrada < 8 || registrarDentistaDTO.HoraSalida > 21 || registrarDentistaDTO.HoraEntrada >= registrarDentistaDTO.HoraSalida)
@@ -90,61 +88,56 @@ namespace SmileDental.Services
                 throw new ArgumentException("Especialidad no válida.");
             }
 
-            return true;
-        }
+            if (await _context.Dentistas.AnyAsync(d => d.Dni == registrarDentistaDTO.DatosPersonales.Dni))
+            {
+                throw new ArgumentException("DNI ya registrado.");
+            }
 
+            if (await _context.Dentistas.AnyAsync(d => d.Email == registrarDentistaDTO.DatosPersonales.Email))
+            {
+                throw new ArgumentException("Email ya registrado.");
+            }
+        }
 
         public async Task<bool> RegistrarDentista(RegistrarDentistaDTO registrarDentistaDTO)
         {
-            try
-            {
-                if (!await VerificarRegistroDentista(registrarDentistaDTO))
-                {
-                    return false;
-                }
-                int especialidadId = await _context.Especialidades
+            // Verifica si los datos del dentista son válidos
+            await VerificarRegistroDentista(registrarDentistaDTO);
+
+            // Obtener el ID de la especialidad
+            int especialidadId = await _context.Especialidades
                 .Where(e => e.Nombre == registrarDentistaDTO.Especialidad)
                 .Select(e => e.Id)
                 .FirstOrDefaultAsync();
 
-                if (especialidadId == 0)
-                {
-                    Log.Error("Especialidad no válida.");
-                    return false;
-                }
-                Dentista dentista = new()
-                {
-                    Nombre = registrarDentistaDTO.DatosPersonales.Nombre,
-                    Apellido = registrarDentistaDTO.DatosPersonales.Apellido,
-                    Email = registrarDentistaDTO.DatosPersonales.Email,
-                    Password = _passwordManager.HashPassword(registrarDentistaDTO.DatosPersonales.Password),
-                    EspecialidadId = especialidadId,
-                    Dni = registrarDentistaDTO.DatosPersonales.Dni,
-                    FotoUrl = "pending",
-                    Telefono = registrarDentistaDTO.DatosPersonales.Nombre,
-                    FechaNacimiento = registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
-                    Activo = registrarDentistaDTO.Activo,
-                    EsAdmin = registrarDentistaDTO.EsAdmin,
-                    HoraEntrada = registrarDentistaDTO.HoraEntrada,
-                    HoraSalida = registrarDentistaDTO.HoraSalida
-                };
+            if (especialidadId == 0)
+            {
+                throw new ArgumentException("Especialidad no válida.");
+            }
 
-                _context.Dentistas.Add(dentista);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (ArgumentException e)
+            // Crear la entidad Dentista
+            Dentista dentista = new()
             {
-                // Loguear el error de validación
-                Log.Error($"Error de validación al registrar el dentista: {e.Message}");
-                return false;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Error al registrar el dentista: {e.Message}");
-                return false;
-            }
+                Nombre = registrarDentistaDTO.DatosPersonales.Nombre,
+                Apellido = registrarDentistaDTO.DatosPersonales.Apellido,
+                Email = registrarDentistaDTO.DatosPersonales.Email,
+                Password = _passwordManager.HashPassword(registrarDentistaDTO.DatosPersonales.Password),
+                EspecialidadId = especialidadId,
+                Dni = registrarDentistaDTO.DatosPersonales.Dni,
+                FotoUrl = "pending",
+                Telefono = registrarDentistaDTO.DatosPersonales.Telefono,
+                FechaNacimiento = registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
+                Activo = registrarDentistaDTO.Activo,
+                EsAdmin = registrarDentistaDTO.EsAdmin,
+                HoraEntrada = registrarDentistaDTO.HoraEntrada,
+                HoraSalida = registrarDentistaDTO.HoraSalida
+            };
+
+            _context.Dentistas.Add(dentista);
+            await _context.SaveChangesAsync();
+            return true;
         }
+
 
         public async Task<bool> SubirFotoEspecialista(SubirFotoDTO subirFotoDTO)
         {
