@@ -8,10 +8,6 @@ using System.Security.Claims;
 
 namespace SmileDental.Controllers
 {
-    //SOLO SE PUEDE ENTRAR SI HAY UN TOKEN VALIDO PARA DENTISTA
-    // TODOS LOS ENDOPOINTS DEBEN ESTAR PROTEGIDOS EXCEPTO EL DE LOGIN
-
-
 
     [Authorize(Roles = "Dentista")]
     [ApiController]

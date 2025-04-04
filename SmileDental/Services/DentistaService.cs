@@ -9,20 +9,15 @@ using SmileDental.Utils;
 
 namespace SmileDental.Services
 {
-    public class DentistaService : IDentistInterface, IGetNombre
+    public class DentistaService(ApiDbContext context) : IDentistInterface, IGetNombre
     {
-        private readonly ApiDbContext _context;
-
-        public DentistaService(ApiDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApiDbContext _context = context;
 
         public async Task<string> GetNombre(int id)
         {
             string nombre = await _context.Dentistas
-                .Where(d => d.Id == id)  
-                .Select(d => $"{d.Nombre} {d.Apellido}") 
+                .Where(d => d.Id == id)
+                .Select(d => $"{d.Nombre} {d.Apellido}")
                 .FirstOrDefaultAsync();
 
             return nombre;
@@ -31,7 +26,7 @@ namespace SmileDental.Services
         public async Task<int> NumeroDePaginas(int dentistaId)
         {
             List<Cita> citas = await _context.Citas.Where(c => c.DentistaId == dentistaId).ToListAsync();
-            return  Enumerador.numeroDePaginas(citas.Count());
+            return  Enumerador.numeroDePaginas(citas.Count);
 
         }
 
@@ -47,7 +42,7 @@ namespace SmileDental.Services
                 var paciente = await _context.Pacientes.FirstOrDefaultAsync(p => p.Dni == dniPaciente);
                 return paciente != null;
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 return false;
             }
@@ -92,7 +87,7 @@ namespace SmileDental.Services
             catch (Exception e)
             {
                 Log.Error($"Error al obtener las citas del dentista {dentistaId}: {e.Message}");
-                return new List<Cita>();
+                return [];
             }
         }
 

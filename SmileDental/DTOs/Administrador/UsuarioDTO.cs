@@ -1,14 +1,19 @@
-﻿namespace SmileDental.DTOs.Administrador
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SmileDental.DTOs.Administrador
 {
     public class UsuarioDTO
     {
-        public int id { get; set; }
-        public string nombre { get; set; }
-        public string apellido { get; set; }
 
-        public string email { get; set; }
-
-        public DateTime fechaNacimiento { get; set; }
+        public required int Id { get; set; }
+      
+        public required string Nombre { get; set; }
+       
+        public required string Apellido { get; set; }
+    
+        public required string Email { get; set; }
+    
+        public required DateTime FechaNacimiento { get; set; }
 
 
     }

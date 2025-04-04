@@ -3,12 +3,8 @@ using SmileDental.Models;
 
 namespace SmileDental
 {
-    public class ApiDbContext : DbContext
+    public class ApiDbContext(DbContextOptions<ApiDbContext> options) : DbContext(options)
     {
-        public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
-        {
-        }
-
         public DbSet<Especialidad> Especialidades { get; set; }
         public DbSet<Dentista> Dentistas { get; set; }
         public DbSet<Paciente> Pacientes { get; set; }
