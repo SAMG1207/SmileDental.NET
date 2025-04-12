@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SmileDental.Builders;
 using SmileDental.DTOs;
 using SmileDental.DTOs.Cita;
 using SmileDental.Models;
@@ -42,7 +43,7 @@ namespace SmileDental.Services
                 .ToList();
 
             // Si no hay dentistas libres, retornar null
-            if (!dentistasLibres.Any())
+            if (dentistasLibres.Count == 0)
             {
                 return null;
             }
@@ -53,20 +54,15 @@ namespace SmileDental.Services
 
         private async Task<List<int>> DentistasGeneralesId()
         {
-            try
-            {
+
                 List<int> dentistasGeneralesIds = await _context.Dentistas.
                                                     Where(d => d.EspecialidadId == 6)
                                                    .Select(d => d.Id)
                                                    .ToListAsync();
                 return dentistasGeneralesIds;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
 
         }
+
         public async Task<List<int>> HorasDisponibles(DateTime fecha)
         {
             // Obtener todos los dentistas generales
@@ -124,36 +120,29 @@ namespace SmileDental.Services
             DateTime fecha = citaGeneralDTO.Fecha;
             int hora = citaGeneralDTO.Hora;
 
-            //Añadir la cita a la base de datos
-
-            try
-            {
                 if (await CitaFutura(pacienteId))
                 {
                     throw new ArgumentException("El paciente ya tiene una cita futura.");
                 }
-                int? dentistId = await GetDentistIdAvailable(fecha, hora);
-                if (dentistId == null)
-                {
+                int? dentistId = 
+                    await GetDentistIdAvailable(fecha, hora) ?? 
                     throw new ArgumentException("No hay dentistas disponibles en la fecha y hora seleccionadas.");
-                }
-                var cita = new Cita(pacienteId, dentistId.Value, fecha, hora);
+
+                var cita = new CitaBuilder()
+                    .WithPacienteId(pacienteId)
+                    .WithDentistaId((int)dentistId)
+                    .WithFecha(fecha)
+                    .WithHora(hora)
+                    .Build();
 
                 await _context.Citas.AddAsync(cita);
                 await _context.SaveChangesAsync();
                 return true;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
 
-            }
         }
 
         public async Task<bool> CancelarCita(int citaId)
         {
-            try
-            {
 
                 var cita = _context.Citas.Find(citaId);
                 if (cita == null)
@@ -163,141 +152,75 @@ namespace SmileDental.Services
                 _context.Remove(cita);
                 await _context.SaveChangesAsync();
                 return true;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
-
-
         }
 
         public async Task<List<Cita>> VerCitas(int pacienteId)
         {
-            try
-            {
                 bool pacienteExiste = await PacienteEstaRegistrado(pacienteId);
                 if (!pacienteExiste)
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                var citas = await _context.Citas
-                .Where(c => c.PacienteId == pacienteId)
-                .ToListAsync();
+                var citas = 
+                    await _context.Citas.Where(c => c.PacienteId == pacienteId).ToListAsync() ??
+                    throw new ArgumentException("No hay citas para el paciente."); 
 
-                if (citas == null)
-                {
-                    throw new ArgumentException("No hay citas para el paciente.");
-                }
                 return citas;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
 
         }
 
         public async Task<bool> CitaFutura(int pacienteId)
         {
-            var paciente = await _context.Pacientes.FindAsync(pacienteId);
-            if (paciente == null)
-            {
-                throw new ArgumentException("El paciente no existe.");
-            }
+            var paciente = await _context.Pacientes.FindAsync(pacienteId) ?? throw new ArgumentException("El paciente no existe.");
             return await _context.Citas
                 .AnyAsync(c => c.PacienteId == pacienteId && c.Fecha > DateTime.Now);
         }
 
         public Task<bool> CambiarEmail(EmailDTO emailDto)
         {
-            try
-            {
-                var paciente = _context.Pacientes.Find(emailDto.PacienteId);
-                if (paciente == null)
-                {
-                    throw new ArgumentException("El paciente no existe.");
-                }
+                var paciente = _context.Pacientes.Find(emailDto.PacienteId) ?? throw new ArgumentException("El paciente no existe.");
                 paciente.SetEmail(emailDto.Email);
                 //paciente.Email = emailDto.Email;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
-
         }
 
         public Task<bool> CambiarPassword(PasswordDTO passwordDto)
         {
-            try
-            {
-                var paciente = _context.Pacientes.Find(passwordDto.Id);
-                if (paciente == null)
-                {
-                    throw new ArgumentException("El paciente no existe.");
-                }
-                paciente.SetPassword(passwordDto.Password);
+                var paciente = _context.Pacientes.Find(passwordDto.Id) ?? throw new ArgumentException("El paciente no existe.");
+                paciente.SetPassword(_passwordService.HashPassword(passwordDto.Password));
                 //paciente.Password = _passwordService.HashPassword(passwordDto.Password);
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
+
         }
 
         public Task<bool> CambiarTelefono(TelefonoDTO telefonoDto)
         {
-            try
-            {
-                var paciente = _context.Pacientes.Find(telefonoDto.PacienteId);
-                if (paciente == null)
-                {
-                    throw new ArgumentException("El paciente no existe.");
-                }
+                var paciente = _context.Pacientes.Find(telefonoDto.PacienteId) ?? throw new ArgumentException("El paciente no existe.");
                 paciente.SetTelefono(telefonoDto.Telefono);
                 //paciente.Telefono = telefonoDto.Telefono;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
-
         }
 
         public Task<bool> CambiarDni(DniDTO dniDto)
         {
-            try
-            {
-                var paciente = _context.Pacientes.Find(dniDto.Id);
-                if (paciente == null)
-                {
-                    throw new ArgumentException("El paciente no existe.");
-                }
+                var paciente = _context.Pacientes.Find(dniDto.Id) ?? throw new ArgumentException("El paciente no existe.");
                 paciente.SetDni(dniDto.Dni);
                 // paciente.Dni = dniDto.Dni;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message);
-            }
         }
 
         public Task<string> GetNombre(int id)
         {
-            throw new NotImplementedException();
+                var paciente = _context.Pacientes.Find(id) ?? throw new ArgumentException("El paciente no existe.");
+                return Task.FromResult(paciente.Nombre);
         }
     }
 }

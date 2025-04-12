@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SmileDental.Builders;
 using SmileDental.DTOs;
 using SmileDental.DTOs.Dentista;
 using SmileDental.Models;
@@ -44,7 +45,15 @@ namespace SmileDental.Services
 
             string hashedPassword = _passwordService.HashPassword(crearUser.Password);
 
-            var paciente = new Paciente(crearUser.Dni, crearUser.Nombre, crearUser.Apellido, crearUser.FechaDeNacimiento, crearUser.Telefono, crearUser.Email, hashedPassword);
+            var paciente = new PacienteBuilder()
+                .WithDni(crearUser.Dni)
+                .WithNombre(crearUser.Nombre)
+                .WithApellido(crearUser.Apellido)   
+                .WithEmail(crearUser.Email)
+                .WithPassword(hashedPassword)
+                .WithTelefono(crearUser.Telefono)
+                .WithFechaNacimiento(crearUser.FechaDeNacimiento)
+                .Build();
 
             _context.Pacientes.Add(paciente);
             await _context.SaveChangesAsync();
@@ -53,6 +62,10 @@ namespace SmileDental.Services
 
         public async Task<UserDTO> ValidarUsuario([FromBody] LoginDTO loginDTO)
         {
+            if (string.IsNullOrEmpty(loginDTO.Email) || string.IsNullOrEmpty(loginDTO.Password))
+            {
+                throw new ArgumentException("El correo electrónico y la contraseña son obligatorios.");
+            }
             var userQueries = new Dictionary<string, Func<Task<dynamic>>>
     {
         { "paciente", async () => await _context.Pacientes.FirstOrDefaultAsync(p => p.Email == loginDTO.Email) },

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using System.Text.Json;
 using SmileDental.Middlewares;
+using SmileDental.Builders;
 
 namespace SmileDental
 {
@@ -35,6 +36,8 @@ namespace SmileDental
             builder.Logging.AddDebug(); // Añade un proveedor de logging a la consola
 
             // Configuración de la autenticación (JWT)
+            var secretKey = builder.Configuration["JwtSettings:SecretKey"];
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -46,9 +49,7 @@ namespace SmileDental
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = builder.Configuration["JWTSettings:Issuer"],
                         ValidAudience = builder.Configuration["JWTSettings:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:SecretKey"])
-                        )
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                     };
                 });
 
@@ -78,6 +79,12 @@ namespace SmileDental
             builder.Services.AddScoped<ActionLogger>();
             builder.Services.AddScoped<PasswordHasher<object>>(); // Usado para el hash de contraseñas
             builder.Services.AddScoped<PasswordManager>(); // Servicio para gestionar el hash de contraseñas
+
+
+            builder.Services.AddScoped<DentistaBuilder>();
+            builder.Services.AddScoped<PacienteBuilder>();
+            builder.Services.AddScoped<CitaBuilder>();
+
 
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DentistaService>();
@@ -183,6 +190,7 @@ namespace SmileDental
             // Configuración del pipeline HTTP
             if (app.Environment.IsDevelopment())
             {
+                app.UseHsts(); // Habilitar HSTS en desarrollo
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
@@ -193,8 +201,10 @@ namespace SmileDental
                 context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
                 context.Response.Headers.Add("X-Frame-Options", "DENY");
                 context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+                context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self';");
                 await next();
             });
+
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

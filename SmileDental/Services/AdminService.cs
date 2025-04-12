@@ -11,17 +11,10 @@ using Sprache;
 
 namespace SmileDental.Services
 {
-    public class AdminService : IAdminInterface, IGetNombre
+    public class AdminService(ApiDbContext context) : IAdminInterface, IGetNombre
     {
 
-        private readonly ApiDbContext _context;
-        private readonly DentistaBuilder _dentistaBuilder;
-
-        public AdminService(ApiDbContext context, DentistaBuilder dentistaBuilder)
-        {
-            _context = context;
-            _dentistaBuilder = dentistaBuilder;
-        }
+        private readonly ApiDbContext _context = context;
 
         public async Task<bool> AgendarCitaEspecialidad(Cita cita)
         {
@@ -285,7 +278,7 @@ namespace SmileDental.Services
             string nombre = await _context.Dentistas
            .Where(d => d.Id == id)
            .Select(d => $"{d.Nombre} {d.Apellido}")
-           .FirstOrDefaultAsync();
+           .FirstOrDefaultAsync() ?? throw new Exception("Dentista no encontrado");
 
             return nombre;
         }
