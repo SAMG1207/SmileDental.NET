@@ -23,13 +23,15 @@ namespace SmileDental
                 .HasOne(c => c.Paciente)
                 .WithMany(p => p.Citas)
                 .HasForeignKey(c => c.PacienteId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
 
             modelBuilder.Entity<Cita>()
                 .HasOne(c => c.Dentista)
                 .WithMany(d => d.Citas)
                 .HasForeignKey(c => c.DentistaId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
 
             modelBuilder.Entity<ActionLogInDb>().ToTable("Logs");
 
