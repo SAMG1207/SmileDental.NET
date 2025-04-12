@@ -15,11 +15,11 @@ namespace SmileDental.Controllers
     public class PacienteController : ControllerBase
     {
         private readonly IPacienteInterface _userEventsServices;
-        
+
         public PacienteController(IPacienteInterface userEventsServices)  // Inyecta la interfaz, no la clase directamente
         {
             _userEventsServices = userEventsServices;
-            
+
         }
 
 
@@ -57,23 +57,27 @@ namespace SmileDental.Controllers
             return BadRequest("Error al cancelar la cita");
         }
 
+        //...
+
         [HttpGet("VerCitas")]
         public async Task<IActionResult> VerCitas()
         {
             int pacienteId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
             var result = await _userEventsServices.VerCitas(pacienteId);
-            if (result != null)
+            if (result != null && result.Any())
             {
                 return Ok(result);
             }
             return BadRequest("Error al obtener las citas");
         }
 
+        //...
+
         [HttpGet("GetHorariosDisponibles/{fecha}")]
         public async Task<IActionResult> GetHorasDisponibles(DateTime fecha)
         {
             var result = await _userEventsServices.HorasDisponibles(fecha);
-            if (result != null)
+            if (result != null && result.Any())
             {
                 return Ok(result);
             }
@@ -120,16 +124,30 @@ namespace SmileDental.Controllers
             return BadRequest("Error al cambiar el password");
         }
 
+        //...
+
         [HttpGet("CitaFutura")]
         public async Task<IActionResult> CitaFutura()
         {
-            var pacienteId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
-            var result = await _userEventsServices.CitaFutura(pacienteId);
-            if (result != null)
+            try
             {
-                return Ok(result);
+                var pacienteId = int.Parse(User.FindAll(ClaimTypes.NameIdentifier).First().Value);
+                var result = await _userEventsServices.CitaFutura(pacienteId);
+                if (result)
+                {
+                    return Ok(result);
+                }  
+                 return BadRequest("No hay citas futuras");
             }
-            return BadRequest("Error al obtener la cita futura");
+            catch (Exception ex)
+            {
+                // Manejo de excepciones
+                // Preturn BadRequest("Error al obtener la cita futura");uedes registrar el error o devolver un mensaje más específico
+                // Log.Error(ex, "Error al obtener la cita futura");
+                return BadRequest("Error al obtener la cita futura");
+            }
+
+            
         }
     }
 }

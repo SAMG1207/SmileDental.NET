@@ -9,9 +9,10 @@ using SmileDental.Utils;
 
 namespace SmileDental.Services
 {
-    public class DentistaService(ApiDbContext context) : IDentistInterface, IGetNombre
+    public class DentistaService(ApiDbContext context, IActionLog actionLogger) : IDentistInterface, IGetNombre
     {
         private readonly ApiDbContext _context = context;
+        private readonly IActionLog _actionLogger = actionLogger;
 
         public async Task<string> GetNombre(int id)
         {
@@ -34,7 +35,7 @@ namespace SmileDental.Services
         {
             try
             {
-                bool dniValido = StringManager.validaDni(dniPaciente);
+                bool dniValido = StringManager.ValidaDni(dniPaciente);
                 if (!dniValido)
                 {
                     return false;
@@ -59,7 +60,13 @@ namespace SmileDental.Services
             {
                 // Aquí actualizaríamos la base de datos con result.FileName
                 var cita = await _context.Citas.FindAsync(subirCitaDTO.citaId);
-                cita.URLCita = result.FileName;
+                cita.SetURLCita(result.FileName);
+                
+
+                int idDentista = await _context.Citas.Where(c => c.Id == subirCitaDTO.citaId)
+                    .Select(c => c.DentistaId)
+                    .FirstOrDefaultAsync();
+                //await _actionLogger.LogearAccion(idDentista, "Dentista", $"El dentista con id: {idDentista} ha subido el informe :{subirCitaDTO.citaId}");
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -95,7 +102,7 @@ namespace SmileDental.Services
         {
             try
             {
-                bool DniValido = StringManager.validaDni(dniPaciente);
+                bool DniValido = StringManager.ValidaDni(dniPaciente);
                 if (!DniValido)
                 {
                     throw new ArgumentException("DNI no válido", nameof(dniPaciente));
@@ -147,6 +154,7 @@ namespace SmileDental.Services
                         urlCita = cita.URLCita
                     });
                 }
+                //await _actionLogger.LogearAccion(dentistaId, "Dentista", $"El dentista con id: {dentistaId} ha consultado las citas del día {fecha.ToString("dd/MM/yyyy")}");
                 return citasDTO;
             }
             catch (Exception e)

@@ -7,27 +7,23 @@ namespace SmileDental.Utils
     {
         public static bool ValidarDatosPersonales(DatosPersonalesDTO datosPersonalesDTO)
         {
-            if(datosPersonalesDTO == null)
-            {
-                throw new ArgumentNullException(nameof(datosPersonalesDTO), "El objeto de datos personales no puede ser nulo.");
-            }
+ 
 
-
-            if (!StringManager.validaNombre(datosPersonalesDTO.Nombre) || !StringManager.validaNombre(datosPersonalesDTO.Apellido))
+            if (!StringManager.ValidaNombre(datosPersonalesDTO.Nombre) || !StringManager.ValidaNombre(datosPersonalesDTO.Apellido))
             {
                 throw new ArgumentException("Nombre o apellido no válido.");
             }
                 
 
-            if (!StringManager.validaDni(datosPersonalesDTO.Dni))
+            if (!StringManager.ValidaDni(datosPersonalesDTO.Dni))
             { throw new ArgumentException("DNI no válido."); }
                 
 
-            if (!StringManager.validaTelefono(datosPersonalesDTO.Telefono)) 
+            if (!StringManager.ValidaTelefono(datosPersonalesDTO.Telefono)) 
             { throw new ArgumentException("Teléfono no válido."); }
                 
 
-            if (!StringManager.validaPassword(datosPersonalesDTO.Password)) 
+            if (!StringManager.ValidaPassword(datosPersonalesDTO.Password)) 
             { throw new ArgumentException("Contraseña no válida."); }
                 
 

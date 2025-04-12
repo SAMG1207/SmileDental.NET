@@ -14,12 +14,10 @@ namespace SmileDental.Services
     {
 
         private readonly ApiDbContext _context;
-        private readonly PasswordManager _passwordManager;
 
-        public AdminService(ApiDbContext context, PasswordManager passwordManager)
+        public AdminService(ApiDbContext context)
         {
             _context = context;
-            _passwordManager = passwordManager;
         }
 
         public async Task<bool> AgendarCitaEspecialidad(Cita cita)
@@ -32,13 +30,8 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente ya tiene una cita agendada");
                 }
-                var nuevaCita = new Cita
-                {
-                    DentistaId = cita.DentistaId,
-                    PacienteId = cita.PacienteId,
-                    Fecha = cita.Fecha,
-                    Hora = cita.Hora,
-                };
+                var nuevaCita = new Cita(cita.PacienteId, cita.DentistaId, cita.Fecha, cita.Hora);
+
 
                 _context.Citas.Add(nuevaCita);
                 await _context.SaveChangesAsync();
@@ -59,7 +52,7 @@ namespace SmileDental.Services
                 throw new Exception("El dentista no existe o ya está dado de baja");
             }
 
-            dentista.Activo = false;
+            dentista.SetActivo(false);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -116,23 +109,19 @@ namespace SmileDental.Services
             }
 
             // Crear la entidad Dentista
-            Dentista dentista = new()
-            {
-                Nombre = registrarDentistaDTO.DatosPersonales.Nombre,
-                Apellido = registrarDentistaDTO.DatosPersonales.Apellido,
-                Email = registrarDentistaDTO.DatosPersonales.Email,
-                Password = _passwordManager.HashPassword(registrarDentistaDTO.DatosPersonales.Password),
-                EspecialidadId = especialidadId,
-                Dni = registrarDentistaDTO.DatosPersonales.Dni,
-                FotoUrl = "pending",
-                Telefono = registrarDentistaDTO.DatosPersonales.Telefono,
-                FechaNacimiento = registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
-                Activo = registrarDentistaDTO.Activo,
-                EsAdmin = registrarDentistaDTO.EsAdmin,
-                HoraEntrada = registrarDentistaDTO.HoraEntrada,
-                HoraSalida = registrarDentistaDTO.HoraSalida
-            };
-
+            Dentista dentista = new (
+                registrarDentistaDTO.DatosPersonales.Dni,
+                registrarDentistaDTO.DatosPersonales.Nombre,
+                registrarDentistaDTO.DatosPersonales.Apellido,
+                registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
+                registrarDentistaDTO.DatosPersonales.Telefono,
+                registrarDentistaDTO.DatosPersonales.Email,
+                registrarDentistaDTO.DatosPersonales.Password,
+                especialidadId,
+                registrarDentistaDTO.HoraEntrada,
+                registrarDentistaDTO.HoraSalida
+            );
+            
             _context.Dentistas.Add(dentista);
             await _context.SaveChangesAsync();
             return true;
@@ -148,11 +137,11 @@ namespace SmileDental.Services
                 if(result.Success)
                 {
                     var dentista = await _context.Dentistas.FindAsync(subirFotoDTO.DentistaId);
-                    if ( dentista != null )
+                    if ( dentista == null )
                     {
                         throw new Exception("Dentista no encontrado");
                     }
-                    dentista.FotoUrl = result.FileName;
+                    dentista.SetFotoUrl(result.FileName);
                     await _context.SaveChangesAsync();
                     return true;
                 }
@@ -202,7 +191,7 @@ namespace SmileDental.Services
         {
             try
             {
-                bool dniValido = StringManager.validaDni(dniPaciente);
+                bool dniValido = StringManager.ValidaDni(dniPaciente);
                 if (!dniValido)
                 {
                     return await Task.FromResult(new List<Cita>());
@@ -228,11 +217,11 @@ namespace SmileDental.Services
                 {
                     var usuarioDTO = new UsuarioDTO
                     {
-                        id = dentista.Id,
-                        nombre = dentista.Nombre,
-                        apellido = dentista.Apellido,
-                        fechaNacimiento = dentista.FechaNacimiento,
-                        email = dentista.Email
+                        Id = dentista.Id,
+                        Nombre = dentista.Nombre,
+                        Apellido = dentista.Apellido,
+                        FechaNacimiento = dentista.FechaNacimiento,
+                        Email = dentista.Email
                     };
 
                     usuarioDTOs.Add(usuarioDTO);
@@ -252,18 +241,17 @@ namespace SmileDental.Services
             {
                 var pacientes = await _context.Pacientes.ToListAsync();
                 var usuarioDTOs = new List<UsuarioDTO>();
-                foreach(Paciente paciente in pacientes)
+                foreach (Paciente paciente in pacientes)
                 {
-                    var UsuarioDTO = new UsuarioDTO
+                    var usuarioDTO = new UsuarioDTO
                     {
-                        id = paciente.Id,
-                        nombre = paciente.Nombre,
-                        apellido = paciente.Apellido,
-                        email = paciente.Email,
-                        fechaNacimiento = paciente.FechaNacimiento
-
+                        Id = paciente.Id,
+                        Nombre = paciente.Nombre,
+                        Apellido = paciente.Apellido,
+                        Email = paciente.Email,
+                        FechaNacimiento = paciente.FechaNacimiento
                     };
-                    usuarioDTOs.Add(UsuarioDTO);
+                    usuarioDTOs.Add(usuarioDTO);
                 }
                 return usuarioDTOs;
             }

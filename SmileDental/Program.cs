@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using System.Text.Json;
+using SmileDental.Middlewares;
 
 namespace SmileDental
 {
@@ -74,19 +75,22 @@ namespace SmileDental
             builder.Services.AddSingleton(new JWTHandler(secretKey, issuer, audience));
 
             // Password services
+            builder.Services.AddScoped<ActionLogger>();
             builder.Services.AddScoped<PasswordHasher<object>>(); // Usado para el hash de contraseñas
             builder.Services.AddScoped<PasswordManager>(); // Servicio para gestionar el hash de contraseñas
 
+            builder.Services.AddScoped<AdminService>();
+            builder.Services.AddScoped<DentistaService>();
+            builder.Services.AddScoped<PacienteService>();
             // Registrar Servicios e Inyección de dependencias
             builder.Services.AddScoped<IInfo, Info>();
 
             builder.Services.AddScoped<IPacienteInterface, PacienteService>();
             builder.Services.AddScoped<IDentistInterface, DentistaService>();
             builder.Services.AddScoped<IAdminInterface, AdminService>();
-            builder.Services.AddScoped<IGetNombre, PacienteService>();
-            builder.Services.AddScoped<IGetNombre, DentistaService>();
-            builder.Services.AddScoped<IGetNombre, AdminService>();
+            builder.Services.AddScoped<IGetNombreFactory, GetNombreFactory>();
             builder.Services.AddScoped<IAuthInterface, AuthServices>();
+            builder.Services.AddScoped<IActionLog, ActionLogger>();
 
             // Health Checks
             builder.Services.AddHealthChecks();
@@ -115,32 +119,42 @@ namespace SmileDental
             app.UseCors("AllowAll");
 
             // Configurar la base de datos y migraciones
-            /*
+
             using (var scope = app.Services.CreateScope())
             {
-                var dataContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+                var services = scope.ServiceProvider;
 
-                var especialidades = dataContext.Especialidades.ToList();
-                if (especialidades.Count == 0)
+                try
                 {
-                    var leagues = new List<Especialidad>
+                    var dataContext = services.GetRequiredService<ApiDbContext>();
+
+                    var especialidades = dataContext.Especialidades.ToList();
+                    if (especialidades.Count == 0)
                     {
-                        new() { Nombre = "Ortodoncia" },
-                        new() { Nombre = "Periodoncia" },
-                        new() { Nombre = "Cirugía" },
-                        new() { Nombre = "Endodoncia" },
-                        new() { Nombre = "Estética" },
-                        new() { Nombre = "General" },
-                    };
+                        var leagues = new List<Especialidad>
+                        {
+                            new Especialidad("Ortodoncia"),
+                            new Especialidad("Periodoncia"),
+                            new Especialidad("Cirugía"),
+                            new Especialidad("Endodoncia"),
+                            new Especialidad("Estética"),
+                            new Especialidad("General"),
+                        };
 
-                    dataContext.Especialidades.AddRange(leagues);
-                    dataContext.SaveChanges();
+                        dataContext.Especialidades.AddRange(leagues);
+                        dataContext.SaveChanges();
+                    }
+
+                    dataContext.Database.Migrate(); // Aplicar migraciones.
                 }
-
-                // Migraciones de base de datos
-                dataContext.Database.Migrate();
+                catch (Exception ex)
+                {
+                    Log.Error($"Error durante la inicialización de la base de datos: {ex.Message}");
+                    throw;
+                }
             }
-            */
+
+
 
             // Middleware de manejo de errores global
             app.UseExceptionHandler(errorApp =>
@@ -185,7 +199,7 @@ namespace SmileDental
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseMiddleware<LogMiddleware>();
             // Rate Limiting
             app.UseRateLimiter();
 

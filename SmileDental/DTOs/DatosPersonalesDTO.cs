@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SmileDental.DTOs
 {
-    public class DatosPersonalesDTO
+    public struct DatosPersonalesDTO
     {
        
         public string Nombre { get; set; }

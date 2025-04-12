@@ -16,16 +16,16 @@ namespace SmileDental.Controllers
     {
         //private readonly JWTHandler _jwtHandler;
         private readonly IDentistInterface _dentistInterface;
-        private readonly IGetNombre _getNombre;
+        private readonly IGetNombreFactory _nombreFactory;
 
         public DentistaController(
             //JWTHandler jwtHandler,
             IDentistInterface dentistInterface,
-            IGetNombre getNombre)
+             IGetNombreFactory nombreFactory)
         {
            // _jwtHandler = jwtHandler;
             _dentistInterface = dentistInterface;
-            _getNombre = getNombre;
+            _nombreFactory = nombreFactory;
         }
 
         private int GetDentistaId()
@@ -43,8 +43,8 @@ namespace SmileDental.Controllers
         [HttpGet("getName")]
         public async Task<IActionResult> GetNombre()
         {
-           
-            string nombre = await _getNombre.GetNombre(GetDentistaId());
+            var servicio = _nombreFactory.GetServicio(EnumeradorUsuarios.Dentista);
+            var nombre = await servicio.GetNombre(GetDentistaId());
             return Ok(new { nombreUsuario = nombre });
         }
 

@@ -37,16 +37,14 @@ namespace SmileDental.Services
                 throw new ArgumentException("El DNI ingresado ya está registrado.");
             }
 
-            var paciente = new Paciente
+            if (!StringManager.ValidaPassword(crearUser.Password))
             {
-                Dni = crearUser.Dni,
-                FechaNacimiento = crearUser.FechaDeNacimiento,
-                Nombre = crearUser.Nombre,
-                Apellido = crearUser.Apellido,
-                Email = crearUser.Email,
-                Password = _passwordService.HashPassword(crearUser.Password),
-                Telefono = crearUser.Telefono
-            };
+                throw new Exception("El password no es válido");
+            }
+
+            string hashedPassword = _passwordService.HashPassword(crearUser.Password);
+
+            var paciente = new Paciente(crearUser.Dni, crearUser.Nombre, crearUser.Apellido, crearUser.FechaDeNacimiento, crearUser.Telefono, crearUser.Email, hashedPassword);
 
             _context.Pacientes.Add(paciente);
             await _context.SaveChangesAsync();

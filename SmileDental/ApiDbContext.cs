@@ -10,6 +10,8 @@ namespace SmileDental
         public DbSet<Paciente> Pacientes { get; set; }
         public DbSet<Cita> Citas { get; set; }
 
+        public DbSet<ActionLogInDb> ActionLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configurar la estrategia TPT para la herencia (no se creará una tabla para UsuarioAbstract)
@@ -28,6 +30,8 @@ namespace SmileDental
                 .WithMany(d => d.Citas)
                 .HasForeignKey(c => c.DentistaId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ActionLogInDb>().ToTable("Logs");
 
             base.OnModelCreating(modelBuilder);
         }

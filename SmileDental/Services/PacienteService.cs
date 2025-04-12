@@ -137,14 +137,7 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("No hay dentistas disponibles en la fecha y hora seleccionadas.");
                 }
-                var cita = new Cita
-                {
-                    PacienteId = pacienteId,
-                    DentistaId = dentistId.Value,
-                    Fecha = fecha,
-                    Hora = hora,
-                    URLCita ="pending"
-                };
+                var cita = new Cita(pacienteId, dentistId.Value, fecha, hora);
 
                 await _context.Citas.AddAsync(cita);
                 await _context.SaveChangesAsync();
@@ -225,7 +218,8 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                paciente.Email = emailDto.Email;
+                paciente.SetEmail(emailDto.Email);
+                //paciente.Email = emailDto.Email;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
@@ -246,7 +240,8 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                paciente.Password = _passwordService.HashPassword(passwordDto.Password);
+                paciente.SetPassword(passwordDto.Password);
+                //paciente.Password = _passwordService.HashPassword(passwordDto.Password);
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
@@ -266,11 +261,8 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                if (!StringManager.validaTelefono(telefonoDto.Telefono))
-                {
-                    throw new ArgumentException("El teléfono ingresado no es válido.");
-                }
-                paciente.Telefono = telefonoDto.Telefono;
+                paciente.SetTelefono(telefonoDto.Telefono);
+                //paciente.Telefono = telefonoDto.Telefono;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
@@ -291,11 +283,8 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente no existe.");
                 }
-                if (!StringManager.validaDni(dniDto.Dni))
-                {
-                    throw new ArgumentException("El DNI ingresado no es válido.");
-                }
-                paciente.Dni = dniDto.Dni;
+                paciente.SetDni(dniDto.Dni);
+                // paciente.Dni = dniDto.Dni;
                 _context.Pacientes.Update(paciente);
                 _context.SaveChanges();
                 return Task.FromResult(true);
