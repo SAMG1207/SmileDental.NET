@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SmileDental.Builders;
 using SmileDental.DTOs;
 using SmileDental.DTOs.Administrador;
 using SmileDental.DTOs.Dentista;
@@ -14,10 +15,12 @@ namespace SmileDental.Services
     {
 
         private readonly ApiDbContext _context;
+        private readonly DentistaBuilder _dentistaBuilder;
 
-        public AdminService(ApiDbContext context)
+        public AdminService(ApiDbContext context, DentistaBuilder dentistaBuilder)
         {
             _context = context;
+            _dentistaBuilder = dentistaBuilder;
         }
 
         public async Task<bool> AgendarCitaEspecialidad(Cita cita)
@@ -109,18 +112,21 @@ namespace SmileDental.Services
             }
 
             // Crear la entidad Dentista
-            Dentista dentista = new (
-                registrarDentistaDTO.DatosPersonales.Dni,
-                registrarDentistaDTO.DatosPersonales.Nombre,
-                registrarDentistaDTO.DatosPersonales.Apellido,
-                registrarDentistaDTO.DatosPersonales.FechaDeNacimiento,
-                registrarDentistaDTO.DatosPersonales.Telefono,
-                registrarDentistaDTO.DatosPersonales.Email,
-                registrarDentistaDTO.DatosPersonales.Password,
-                especialidadId,
-                registrarDentistaDTO.HoraEntrada,
-                registrarDentistaDTO.HoraSalida
-            );
+            var dentista = new DentistaBuilder()
+                 .WithDni(registrarDentistaDTO.DatosPersonales.Dni)
+                 .WithNombre(registrarDentistaDTO.DatosPersonales.Nombre)
+                 .WithApellido(registrarDentistaDTO.DatosPersonales.Apellido)
+                 .WithFechaNacimiento(registrarDentistaDTO.DatosPersonales.FechaDeNacimiento)
+                 .WithTelefono(registrarDentistaDTO.DatosPersonales.Telefono)
+                 .WithEmail(registrarDentistaDTO.DatosPersonales.Email)
+                 .WithPassword(registrarDentistaDTO.DatosPersonales.Password)
+                 .WithEspecialidadId(especialidadId)
+                 .WithHoraEntrada(registrarDentistaDTO.HoraEntrada)
+                 .WithHoraSalida(registrarDentistaDTO.HoraSalida)
+                 .WithActivo(true)
+                 .WithFotoUrl("pending")
+                 .WithEsAdmin(false)
+                 .Build();
             
             _context.Dentistas.Add(dentista);
             await _context.SaveChangesAsync();

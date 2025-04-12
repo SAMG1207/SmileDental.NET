@@ -21,33 +21,7 @@ namespace SmileDental.Models
 
         public Dentista(){   }
 
-        public Dentista(
-            string dni, 
-            string nombre,
-            string apellido,
-            DateTime fechaNacimiento,
-            string telefono,
-            string email,
-            string password,
-            int especialidadId, 
-            int horaEntrada,
-            int horaSalida
-            ) 
-        { 
-            SetDni(dni);
-            SetNombre(nombre);
-            SetApellido(apellido);
-            SetFechaNacimiento(fechaNacimiento);
-            SetTelefono(telefono);
-            SetEmail(email);
-            SetPassword(password);
-            EspecialidadId = especialidadId; // Se maneja en el servicio
-            EsAdmin = false;
-            SetHoraEntrada(horaEntrada);
-            SetHoraSalida(horaSalida);
-            Activo = true;
-        }
-
+ 
         public void SetActivo(bool activo)
         {
             Activo = activo;
@@ -79,6 +53,19 @@ namespace SmileDental.Models
             }
             FotoUrl = fotoUrl;
         }
+
+        public void SetEspecialidadId(int especialidadId)
+        {
+            if (especialidadId <= 0 || especialidadId > 10)
+            {
+                throw new ArgumentException("El ID de la especialidad no es válido.");
+            }
+            EspecialidadId = especialidadId;
+        }
+        public void SetEsAdmin(bool esAdmin)
+        {
+            EsAdmin = esAdmin;
+        }   
 
     }
 }
