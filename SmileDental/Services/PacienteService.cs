@@ -81,7 +81,7 @@ namespace SmileDental.Services
                 .ToListAsync();
 
             // Crear un HashSet para almacenar las horas disponibles, evitando duplicados
-            HashSet<int> horasDisponibles = new HashSet<int>();
+            HashSet<int> horasDisponibles = [];
 
             foreach (var dentista in horasDeTrabajo)
             {
@@ -103,7 +103,7 @@ namespace SmileDental.Services
 
 
             // Convertir el HashSet a una lista ordenada antes de devolver
-            return horasDisponibles.OrderBy(h => h).ToList();
+            return [.. horasDisponibles.OrderBy(h => h)];
 
         }
 

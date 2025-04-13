@@ -70,7 +70,7 @@ namespace SmileDental
 
             // JWT Handler
             var jwtSettings = builder.Configuration.GetSection("JWTSettings");
-            string secretKey = jwtSettings.GetValue<string>("SecretKey");
+            //string secretKey = builder.Configuration["JwtSettings:SecretKey"];
             string issuer = jwtSettings.GetValue<string>("Issuer");
             string audience = jwtSettings.GetValue<string>("Audience");
             builder.Services.AddSingleton(new JWTHandler(secretKey, issuer, audience));
