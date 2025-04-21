@@ -15,6 +15,8 @@ using System.Threading.RateLimiting;
 using System.Text.Json;
 using SmileDental.Middlewares;
 using SmileDental.Builders;
+using SmileDental.Repositories.Repository;
+using SmileDental.Repositories.Interfaces;
 
 namespace SmileDental
 {
@@ -85,12 +87,18 @@ namespace SmileDental
             builder.Services.AddScoped<PacienteBuilder>();
             builder.Services.AddScoped<CitaBuilder>();
 
+            
+
 
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<DentistaService>();
             builder.Services.AddScoped<PacienteService>();
             // Registrar Servicios e Inyección de dependencias
             builder.Services.AddScoped<IInfo, Info>();
+
+            builder.Services.AddScoped<IPacienteRepository, PacienteRepository>();
+            builder.Services.AddScoped<ICitaRepository, CitaRepository>();
+            builder.Services.AddScoped<IDentistaRepository, DentistaRepository>();
 
             builder.Services.AddScoped<IPacienteInterface, PacienteService>();
             builder.Services.AddScoped<IDentistInterface, DentistaService>();

@@ -4,6 +4,11 @@ using SmileDental.Repositories.Interfaces;
 
 namespace SmileDental.Repositories.Repository
 {
+    /*
+     * ESTE ES EL REPOSITORIO DE PACIENTES
+     * NO TIENE SOLO QUE VER CON PACIENTES
+     * SINO MAS BIEN CON LAS QUERYS QUE USARA EL PACIENTE EN SU CONTROLADOR
+     */
     public class PacienteRepository(ApiDbContext context) : IPacienteRepository
     {
         private readonly ApiDbContext _context = context;
@@ -22,25 +27,9 @@ namespace SmileDental.Repositories.Repository
         {
             return await _context.Pacientes
                 .Include(p => p.Citas)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id) ?? throw new Exception("Paciente no registrado");
         }
-        public Task<bool> UpdatePaciente(int pacienteId, Paciente paciente)
-        {
-            // EL PASSWORD NO SE ACTUALIZA
-            Paciente pacienteObtenido = _context.Pacientes.Find(pacienteId);
-            if (pacienteObtenido == null)
-            {
-                return Task.FromResult(false);
-            }
-            pacienteObtenido.SetNombre(paciente.Nombre);
-            pacienteObtenido.SetApellido(paciente.Apellido);
-            pacienteObtenido.SetEmail(paciente.Email);
-            pacienteObtenido.SetTelefono(paciente.Telefono);
-            pacienteObtenido.SetFechaNacimiento(paciente.FechaNacimiento);
-            _context.Pacientes.Update(pacienteObtenido);
-            _context.SaveChanges();
-            return Task.FromResult(true);
-        }
+   
         public async Task<bool> DeletePaciente(int id)
         {
             return await _context.Pacientes
@@ -51,11 +40,6 @@ namespace SmileDental.Repositories.Repository
         {
             await _context.Pacientes.AddAsync(paciente);
             return await _context.SaveChangesAsync() > 0;
-        }
-
-        public Task<List<Cita>> GetCitasByPacienteId(int pacienteId, Paciente paciente)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<bool> UpdatePacientePassword(int pacienteid, string password)
@@ -69,6 +53,19 @@ namespace SmileDental.Repositories.Repository
             _context.Pacientes.Update(paciente);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> UpdatePaciente(Paciente paciente)
+        {
+
+            if(await _context.Pacientes.AnyAsync(p => p.Id == paciente.Id))
+            {
+                _context.Pacientes.Update(paciente);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
     }
 }

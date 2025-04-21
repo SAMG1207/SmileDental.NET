@@ -3,6 +3,7 @@ using SmileDental.Builders;
 using SmileDental.DTOs;
 using SmileDental.DTOs.Cita;
 using SmileDental.Models;
+using SmileDental.Repositories.Repository;
 using SmileDental.Services.Interfaces;
 using SmileDental.Utils;
 
@@ -11,19 +12,14 @@ namespace SmileDental.Services
     //ESTE CONTROLADOR DEBE ESTAR RESTRINGIDO POR EL TOKEN Y SOLO A LOS PACIENTES
     public class PacienteService : IPacienteInterface, IGetNombre
     {
-        private readonly ApiDbContext _context;
+        private readonly PacienteRepository _pacienteRepository;
 
         private readonly PasswordManager _passwordService;
 
-        public PacienteService(ApiDbContext context, PasswordManager passwordService)
+        public PacienteService(PacienteRepository pacienteRepository, PasswordManager passwordService)
         {
-            _context = context;
+            _pacienteRepository = pacienteRepository;
             _passwordService = passwordService;
-        }
-
-        public async Task<List<Paciente>> GetPacientes()
-        {
-            return await _context.Pacientes.ToListAsync();
         }
 
         public async Task<int?> GetDentistIdAvailable(DateTime fecha, int hora)
