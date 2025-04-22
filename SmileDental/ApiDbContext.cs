@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using SmileDental.Models;
 
 namespace SmileDental
@@ -9,16 +10,22 @@ namespace SmileDental
         public DbSet<Dentista> Dentistas { get; set; }
         public DbSet<Paciente> Pacientes { get; set; }
         public DbSet<Cita> Citas { get; set; }
-
         public DbSet<ActionLogInDb> ActionLogs { get; set; }
+
+        public async Task<IEnumerable<int>> GetHorasLibresPorFecha(DateTime fecha)
+        {
+            var fechaParam = new SqlParameter("@dtFechaCita", fecha);
+            var horasLibres = await this.Database
+                .SqlQueryRaw<int>("EXECUTE GetHorasLibresPorFecha @dtFechaCita", fechaParam)
+                .ToListAsync(); 
+            return horasLibres;
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configurar la estrategia TPT para la herencia (no se creará una tabla para UsuarioAbstract)
-            modelBuilder.Entity<Dentista>().ToTable("Dentistas");  // Asegúrate de que la tabla para Dentista sea explícita
-            modelBuilder.Entity<Paciente>().ToTable("Pacientes");  // Lo mismo para Pacientes
+            modelBuilder.Entity<Dentista>().ToTable("Dentistas");
+            modelBuilder.Entity<Paciente>().ToTable("Pacientes");
 
-            // Configuración de relaciones
             modelBuilder.Entity<Cita>()
                 .HasOne(c => c.Paciente)
                 .WithMany(p => p.Citas)

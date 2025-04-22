@@ -4,13 +4,10 @@ using SmileDental.Repositories.Interfaces;
 
 namespace SmileDental.Repositories.Repository
 {
-    public class DentistaRepository : IDentistaRepository
+    public class DentistaRepository(ApiDbContext context) : IDentistaRepository
     {
-        private readonly ApiDbContext _context;
-        public DentistaRepository(ApiDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApiDbContext _context = context;
+
         public async Task<bool> ActivarDentista(int id)
         {
                 var dentista = await _context.Dentistas.FindAsync(id);
@@ -76,7 +73,7 @@ namespace SmileDental.Repositories.Repository
                 .Select(d => d.Id)
                 .ToListAsync();
         }
-
+        /*
         public async Task<IEnumerable<int>> GetDentistasGeneralesIds()
         {
             return await _context.Dentistas
@@ -84,7 +81,7 @@ namespace SmileDental.Repositories.Repository
                .Select(d => d.Id)
                .ToListAsync();
         }
-
+        */
         public async Task<IEnumerable<int>> GetDisponibilidadDeDentistasGeneralesPorFechaYHora(DateTime fecha, int hora)
         {
             // Obtener las citas que coinciden con la fecha y la hora  
@@ -110,7 +107,7 @@ namespace SmileDental.Repositories.Repository
             // Seleccionar los IDs de los dentistas disponibles  
             return dentistasLibres.Select(d => d.Id);
         }
-
+        /*
         public async Task<IEnumerable<int>> GetHorasDisponiblesPorFecha(DateTime fecha)
         {
            IEnumerable<int> dentistasGeneralesIds = await GetDentistasGeneralesIds();
@@ -152,7 +149,7 @@ namespace SmileDental.Repositories.Repository
             // Convertir el HashSet a una lista ordenada antes de devolver
             return [.. horasDisponibles.OrderBy(h => h)];
         }
-
+        */
         public async Task UpdateAsync(Dentista dentista)
         {
             if (await _context.Dentistas.AnyAsync(c => c.Id == dentista.Id))

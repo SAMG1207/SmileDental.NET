@@ -13,6 +13,8 @@ namespace SmileDental.Repositories.Interfaces
         Task<IEnumerable<Cita>> GetCitasByOdontologoIdAsync(int odontologoId);
         Task<IEnumerable<Cita>> GetCitasByFechaAsync(DateTime fecha);
 
+        Task<IEnumerable<int>> GetHorariosDisponiblesPorFecha(DateTime fecha);
+
         
     }
 }

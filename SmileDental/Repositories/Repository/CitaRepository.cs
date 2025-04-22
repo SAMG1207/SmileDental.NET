@@ -5,13 +5,10 @@ using SmileDental.Repositories.Interfaces;
 
 namespace SmileDental.Repositories.Repository
 {
-    public class CitaRepository : ICitaRepository
+    public class CitaRepository(ApiDbContext context) : ICitaRepository
     {
-        private readonly ApiDbContext _context;
-        public CitaRepository(ApiDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApiDbContext _context = context;
+
         public async Task<IEnumerable<Cita>> GetCitasAsync()
         {
             return await _context.Citas
@@ -85,6 +82,12 @@ namespace SmileDental.Repositories.Repository
                 .ToListAsync();
             return citas.ContinueWith(task => (IEnumerable<Cita>)task.Result);
         }
-   
+
+        public async Task<IEnumerable<int>> GetHorariosDisponiblesPorFecha(DateTime fecha)
+        {
+           return await _context.GetHorasLibresPorFecha(fecha);
+        }
+
+      
     }
 }

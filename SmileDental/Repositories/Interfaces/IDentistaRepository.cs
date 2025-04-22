@@ -14,14 +14,17 @@ namespace SmileDental.Repositories.Interfaces
 
         Task<bool> ActivarDentista(int id);
 
+        Task<IEnumerable<int>> GetDisponibilidadDeDentistasGeneralesPorFechaYHora(DateTime fecha, int hora);
+        /*
+
         Task<IEnumerable<int>> GetDentistasGeneralesIds();
 
         Task<IEnumerable<int>> GetDentistasEspecialistasIds();
 
-        Task<IEnumerable<int>> GetDisponibilidadDeDentistasGeneralesPorFechaYHora( DateTime fecha, int hora);
+        
 
         Task<IEnumerable<int>> GetHorasDisponiblesPorFecha(DateTime fecha);
-
+        */
 
     }
 }
