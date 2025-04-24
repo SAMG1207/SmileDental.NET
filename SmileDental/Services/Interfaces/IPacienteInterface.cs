@@ -6,7 +6,6 @@ namespace SmileDental.Services.Interfaces
 {
     public interface IPacienteInterface
     {
-        Task<int?> GetDentistIdAvailable(DateTime fecha, int hora);
         Task<bool> CrearCita(CitaGeneralDTO citaGeneralDTO);
         Task<bool> CancelarCita(int citaId);
         Task<List<Cita>> VerCitas(int pacienteId);

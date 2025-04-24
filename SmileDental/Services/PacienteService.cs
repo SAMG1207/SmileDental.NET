@@ -53,48 +53,46 @@ namespace SmileDental.Services
                 {
                     throw new ArgumentException("El paciente ya tiene una cita futura.");
                 }
-                int? dentistId = 
-                    await GetDentistIdAvailable(fecha, hora) ?? 
-                    throw new ArgumentException("No hay dentistas disponibles en la fecha y hora seleccionadas.");
+            
+            IEnumerable<int> dentistsId =
+                await _dentistaRepository.GetDisponibilidadDeDentistasGeneralesPorFechaYHora(fecha, hora);
 
-                var cita = new CitaBuilder()
+
+            if (!dentistsId.Any())
+            {
+                throw new ArgumentException("No hay dentistas disponibles en esa fecha y hora.");
+            }
+
+            int index = new Random().Next(dentistsId.Count());
+            _ = dentistsId.ElementAt(index); int dentistaSeleccionado = new Random().Next(0, dentistsId.Count());
+
+
+            var cita = new CitaBuilder()
                     .WithPacienteId(pacienteId)
-                    .WithDentistaId((int)dentistId)
+                    .WithDentistaId((int)dentistaSeleccionado)
                     .WithFecha(fecha)
                     .WithHora(hora)
                     .Build();
 
-                await _context.Citas.AddAsync(cita);
-                await _context.SaveChangesAsync();
+            await _citaRepository.AddCitaAsync(cita);
                 return true;
 
         }
 
         public async Task<bool> CancelarCita(int citaId)
         {
-
-                var cita = _context.Citas.Find(citaId);
-                if (cita == null)
-                {
-                    throw new ArgumentException("La cita no existe.");
-                }
-                _context.Remove(cita);
-                await _context.SaveChangesAsync();
-                return true;
+            await _citaRepository.DeleteCitaAsync(citaId);
+            return true;
         }
 
         public async Task<List<Cita>> VerCitas(int pacienteId)
         {
-                bool pacienteExiste = await PacienteEstaRegistrado(pacienteId);
-                if (!pacienteExiste)
-                {
-                    throw new ArgumentException("El paciente no existe.");
-                }
-                var citas = 
-                    await _context.Citas.Where(c => c.PacienteId == pacienteId).ToListAsync() ??
-                    throw new ArgumentException("No hay citas para el paciente."); 
-
-                return citas;
+           var citas = await _pacienteRepository.GetCitasByPacienteId(pacienteId);
+            if (citas == null || citas.Count == 0)
+            {
+                throw new Exception("No hay citas registradas para este paciente.");
+            }
+            return citas;
 
         }
 
@@ -139,5 +137,7 @@ namespace SmileDental.Services
         {
             return await _pacienteRepository.GetPacienteName(id);
         }
+
+  
     }
 }
