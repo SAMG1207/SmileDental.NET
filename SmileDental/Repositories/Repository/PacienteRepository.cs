@@ -23,7 +23,7 @@ namespace SmileDental.Repositories.Repository
                 .Where(c => c.PacienteId == pacienteId)
                 .ToListAsync();
         }
-        public async Task<Paciente> GetPacienteById(int id)
+        public async Task<Paciente?> GetPacienteById(int id)
         {
             return await _context.Pacientes
                 .Include(p => p.Citas)
@@ -42,18 +42,6 @@ namespace SmileDental.Repositories.Repository
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> UpdatePacientePassword(int pacienteid, string password)
-        {
-            var paciente = await _context.Pacientes.FindAsync(pacienteid);
-            if (paciente == null)
-            {
-                return false;
-            }
-            paciente.SetPassword(password);
-            _context.Pacientes.Update(paciente);
-            await _context.SaveChangesAsync();
-            return true;
-        }
 
         public async Task<bool> UpdatePaciente(Paciente paciente)
         {
@@ -66,6 +54,14 @@ namespace SmileDental.Repositories.Repository
             }
 
             return false;
+        }
+
+        public async Task<string> GetPacienteName(int id)
+        {
+           return await _context.Pacientes
+                .Where(p => p.Id == id)
+                .Select(p => p.Nombre + " " + p.Apellido)
+                .FirstOrDefaultAsync() ?? throw new Exception("Paciente no registrado");
         }
     }
 }

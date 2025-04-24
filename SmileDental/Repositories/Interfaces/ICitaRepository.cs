@@ -15,6 +15,6 @@ namespace SmileDental.Repositories.Interfaces
 
         Task<IEnumerable<int>> GetHorariosDisponiblesPorFecha(DateTime fecha);
 
-        
+        Task<bool> GetCitaByPacienteId(int pacienteId);
     }
 }

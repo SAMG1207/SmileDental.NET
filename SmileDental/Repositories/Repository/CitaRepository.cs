@@ -16,12 +16,14 @@ namespace SmileDental.Repositories.Repository
                 .Include(c => c.Dentista)
                 .ToListAsync();
         }
-        public Task<Cita> GetCitaByIdAsync(int id)
+        public async Task<Cita> GetCitaByIdAsync(int id)
         {
-            return _context.Citas
-                .Include(c => c.Paciente)
-                .Include(c => c.Dentista)
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var cita = await _context.Citas
+            .Include(c => c.Paciente)
+             .Include(c => c.Dentista)
+             .FirstOrDefaultAsync(c => c.Id == id);
+
+            return cita ?? throw new Exception("No existe esta cita");
         }
         public async Task AddCitaAsync(Cita cita)
         {
@@ -80,7 +82,7 @@ namespace SmileDental.Repositories.Repository
                 .Include(c => c.Dentista)
                 .Where(c => c.Fecha.Date == fecha.Date)
                 .ToListAsync();
-            return citas.ContinueWith(task => (IEnumerable<Cita>)task.Result);
+            return citas.ContinueWith(task => (IEnumerable<Cita>)task.Result) ?? throw new Exception("No existen citas en esta fecha");
         }
 
         public async Task<IEnumerable<int>> GetHorariosDisponiblesPorFecha(DateTime fecha)
@@ -88,6 +90,11 @@ namespace SmileDental.Repositories.Repository
            return await _context.GetHorasLibresPorFecha(fecha);
         }
 
-      
+        public async Task<bool> GetCitaByPacienteId(int pacienteId)
+        {
+            // no se hace doble comprobacion del pacienteid
+            return await _context.Citas
+                .AnyAsync(c => c.PacienteId == pacienteId && c.Fecha > DateTime.Now);
+        }
     }
 }
