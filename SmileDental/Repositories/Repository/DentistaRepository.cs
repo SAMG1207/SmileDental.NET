@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SmileDental.DTOs.Administrador;
 using SmileDental.Models;
 using SmileDental.Repositories.Interfaces;
 
@@ -48,6 +49,12 @@ namespace SmileDental.Repositories.Repository
             return false;
         }
 
+        public async Task<Dentista> GetAdministradorByEmail(string email)
+        {
+            return await _context.Dentistas.Where(d => d.Email == email && d.EsAdmin == true)
+                .FirstOrDefaultAsync() ?? throw new Exception("Dentista no encontrado");   
+        }
+
         public async Task<IEnumerable<Dentista>> GetAllAsync()
         {
             var dentistas = await _context.Dentistas
@@ -64,6 +71,12 @@ namespace SmileDental.Repositories.Repository
                 .FirstOrDefaultAsync(d => d.Id == id) ?? throw new Exception("Dentista no encontrado");
             
             return dentista;
+        }
+
+        public async Task<Dentista> GetDentistaByEmail(string email)
+        {
+            return await _context.Dentistas.Where(d => d.Email == email && d.EsAdmin == false)
+               .FirstOrDefaultAsync() ?? throw new Exception("Dentista no encontrado");
         }
 
         public async Task<IEnumerable<int>> GetDentistasEspecialistasIds()
@@ -107,49 +120,77 @@ namespace SmileDental.Repositories.Repository
             // Seleccionar los IDs de los dentistas disponibles  
             return dentistasLibres.Select(d => d.Id);
         }
-        /*
-        public async Task<IEnumerable<int>> GetHorasDisponiblesPorFecha(DateTime fecha)
+
+        public async Task<string> GetNombreDentistaPorId(int id)
         {
-           IEnumerable<int> dentistasGeneralesIds = await GetDentistasGeneralesIds();
+            string nombre = await _context.Dentistas
+                .Where(d => d.Id == id)
+                .Select(d => $"{d.Nombre} {d.Apellido}")
+                .FirstOrDefaultAsync() ?? throw new Exception("No se ha encontrado al dentista");
+            return nombre;
+        }
 
-            // Obtener las horas ocupadas de cada dentista en la fecha indicada
-            var horasOcupadas = await _context.Citas
-                .Where(c => dentistasGeneralesIds.Contains(c.DentistaId) && c.Fecha == fecha)
-                .GroupBy(c => c.DentistaId)
-                .ToDictionaryAsync(g => g.Key, g => g.Select(c => c.Hora).ToList());
-
-            // Obtener las horas de trabajo de cada dentista
-            var horasDeTrabajo = await _context.Dentistas
-                .Where(d => dentistasGeneralesIds.Contains(d.Id))
-                .Select(d => new { d.Id, d.HoraEntrada, d.HoraSalida })
+        public async Task<IEnumerable<PresentacionDentistaDTO>> GetPresentacionDentistasNoGenerales()
+        {
+            var dentistas = await _context.Dentistas
+                .Where(d => d.EspecialidadId != 6 && d.Activo == true)
+                .Select(d => new PresentacionDentistaDTO
+                {
+                    Nombre = d.Nombre,
+                    Apellido = d.Apellido,
+                    Especialidad = d.Especialidad.Nombre,
+                    UrlFoto = d.FotoUrl
+                })
                 .ToListAsync();
 
-            // Crear un HashSet para almacenar las horas disponibles, evitando duplicados
-            HashSet<int> horasDisponibles = [];
-
-            foreach (var dentista in horasDeTrabajo)
-            {
-                // Obtener las horas ocupadas por el dentista en la fecha indicada
-                var horasOcupadasDentista = horasOcupadas.ContainsKey(dentista.Id) ? horasOcupadas[dentista.Id] : new List<int>();
-
-                // Generar un rango de horas de trabajo para el dentista
-                var horasDeTrabajoDentista = Enumerable.Range(dentista.HoraEntrada, dentista.HoraSalida - dentista.HoraEntrada).ToList();
-
-                // Obtener las horas disponibles (horas de trabajo menos las horas ocupadas)
-                var horasDisponiblesDentista = horasDeTrabajoDentista.Except(horasOcupadasDentista).ToList();
-
-                // Añadir las horas disponibles al HashSet
-                foreach (var hora in horasDisponiblesDentista)
-                {
-                    horasDisponibles.Add(hora);
-                }
-            }
-
-
-            // Convertir el HashSet a una lista ordenada antes de devolver
-            return [.. horasDisponibles.OrderBy(h => h)];
+            return dentistas;
         }
-        */
+
+
+
+        /*
+public async Task<IEnumerable<int>> GetHorasDisponiblesPorFecha(DateTime fecha)
+{
+  IEnumerable<int> dentistasGeneralesIds = await GetDentistasGeneralesIds();
+
+   // Obtener las horas ocupadas de cada dentista en la fecha indicada
+   var horasOcupadas = await _context.Citas
+       .Where(c => dentistasGeneralesIds.Contains(c.DentistaId) && c.Fecha == fecha)
+       .GroupBy(c => c.DentistaId)
+       .ToDictionaryAsync(g => g.Key, g => g.Select(c => c.Hora).ToList());
+
+   // Obtener las horas de trabajo de cada dentista
+   var horasDeTrabajo = await _context.Dentistas
+       .Where(d => dentistasGeneralesIds.Contains(d.Id))
+       .Select(d => new { d.Id, d.HoraEntrada, d.HoraSalida })
+       .ToListAsync();
+
+   // Crear un HashSet para almacenar las horas disponibles, evitando duplicados
+   HashSet<int> horasDisponibles = [];
+
+   foreach (var dentista in horasDeTrabajo)
+   {
+       // Obtener las horas ocupadas por el dentista en la fecha indicada
+       var horasOcupadasDentista = horasOcupadas.ContainsKey(dentista.Id) ? horasOcupadas[dentista.Id] : new List<int>();
+
+       // Generar un rango de horas de trabajo para el dentista
+       var horasDeTrabajoDentista = Enumerable.Range(dentista.HoraEntrada, dentista.HoraSalida - dentista.HoraEntrada).ToList();
+
+       // Obtener las horas disponibles (horas de trabajo menos las horas ocupadas)
+       var horasDisponiblesDentista = horasDeTrabajoDentista.Except(horasOcupadasDentista).ToList();
+
+       // Añadir las horas disponibles al HashSet
+       foreach (var hora in horasDisponiblesDentista)
+       {
+           horasDisponibles.Add(hora);
+       }
+   }
+
+
+   // Convertir el HashSet a una lista ordenada antes de devolver
+   return [.. horasDisponibles.OrderBy(h => h)];
+}
+*/
         public async Task UpdateAsync(Dentista dentista)
         {
             if (await _context.Dentistas.AnyAsync(c => c.Id == dentista.Id))

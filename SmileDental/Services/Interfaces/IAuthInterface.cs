@@ -7,7 +7,7 @@ namespace SmileDental.Services.Interfaces
     {
 
 
-        Task<UserDTO> ValidarUsuario([FromBody] LoginDTO loginDTO);
+        Task<UserDTO?> ValidarUsuario([FromBody] LoginDTO loginDTO);
         Task<bool> RegisterPaciente(DatosPersonalesDTO datosPersonlesDto);
 
     }

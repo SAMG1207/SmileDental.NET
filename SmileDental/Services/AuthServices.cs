@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using SmileDental.Builders;
 using SmileDental.DTOs;
 using SmileDental.DTOs.Dentista;
 using SmileDental.Models;
+using SmileDental.Repositories.Repository;
 using SmileDental.Services.Interfaces;
 using SmileDental.Utils;
 
@@ -12,13 +14,19 @@ namespace SmileDental.Services
     public class AuthServices : IAuthInterface
     {
         private readonly ApiDbContext _context;
+        private readonly DentistaRepository _dentistaRepository;
+        private readonly PacienteRepository _pacienteRepository;
+        private readonly CitaRepository _citaRepository;
         private readonly PasswordManager _passwordService;
         private readonly JWTHandler _jwtHandler;
 
 
-        public AuthServices(ApiDbContext context, PasswordManager passwordService, JWTHandler jwtHandler)
+        public AuthServices(ApiDbContext context, DentistaRepository dentistaRepository, PacienteRepository pacienteRepository, CitaRepository citaRepository, PasswordManager passwordService, JWTHandler jwtHandler)
         {
             _context = context;
+            _pacienteRepository = pacienteRepository;
+            _dentistaRepository = dentistaRepository;
+            _citaRepository = citaRepository;
             _passwordService = passwordService;
             _jwtHandler = jwtHandler;
         }
@@ -60,21 +68,22 @@ namespace SmileDental.Services
             return true;
         }
 
-        public async Task<UserDTO> ValidarUsuario([FromBody] LoginDTO loginDTO)
+        public async Task<UserDTO?> ValidarUsuario([FromBody] LoginDTO loginDTO)
         {
             if (string.IsNullOrEmpty(loginDTO.Email) || string.IsNullOrEmpty(loginDTO.Password))
             {
                 throw new ArgumentException("El correo electrónico y la contraseña son obligatorios.");
             }
             var userQueries = new Dictionary<string, Func<Task<dynamic>>>
-    {
-        { "paciente", async () => await _context.Pacientes.FirstOrDefaultAsync(p => p.Email == loginDTO.Email) },
-        { "dentista", async () => await _context.Dentistas.FirstOrDefaultAsync(d => d.Email == loginDTO.Email) },
-        { "administrador", async () => await _context.Dentistas.FirstOrDefaultAsync(d => d.Email == loginDTO.Email && d.EsAdmin) }
-    };
+            {
+                { "paciente", async () => await _pacienteRepository.GetPacienteByEmail(loginDTO.Email)},
+                { "dentista", async () => await _dentistaRepository.GetDentistaByEmail(loginDTO.Email) },
+                { "administrador", async () => await _dentistaRepository.GetAdministradorByEmail(loginDTO.Email)}
+            };
 
-            if (!userQueries.ContainsKey(loginDTO.tipoUsuario.ToLower()))
-                return null;
+            if (!userQueries.ContainsKey(loginDTO.tipoUsuario.ToLower())) 
+            { throw new ArgumentException("Tipo de usuario no válido."); }
+               
 
             var usuario = await userQueries[loginDTO.tipoUsuario.ToLower()]();
 
@@ -91,7 +100,7 @@ namespace SmileDental.Services
             return null;
         }
 
-        private async Task<Paciente> GetPacienteByDni(string dni) => await _context.Pacientes.FirstOrDefaultAsync(p => p.Dni == dni);
+        private async Task<Paciente> GetPacienteByDni(string dni) => await _pacienteRepository.GetPacienteByDNI(dni);
 
 
     }

@@ -5,7 +5,7 @@ namespace SmileDental.Services.Interfaces
 {
     public interface IInfo
     {
-        Task<List<string>> VerEspecialidades();
-        Task<List<PresentacionDentistaDTO>> VerUrlFotosDentistasEspecialidad();
+        Task<IEnumerable<string>> VerEspecialidades();
+        Task<IEnumerable<PresentacionDentistaDTO>> VerUrlFotosDentistasEspecialidad();
     }
 }

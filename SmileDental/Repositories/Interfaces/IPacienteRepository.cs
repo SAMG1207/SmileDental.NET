@@ -10,6 +10,8 @@ namespace SmileDental.Repositories.Interfaces
         Task<bool> DeletePaciente(int id);
         Task<bool> CreatePaciente(Paciente paciente);
 
+        Task<Paciente> GetPacienteByDNI(string dni);
+        Task<Paciente> GetPacienteByEmail(string email);
         Task<string> GetPacienteName(int id);
     }
 }

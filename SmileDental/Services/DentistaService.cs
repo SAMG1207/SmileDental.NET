@@ -4,51 +4,41 @@ using SmileDental.DTOs;
 using SmileDental.DTOs.Cita;
 using SmileDental.DTOs.Dentista;
 using SmileDental.Models;
+using SmileDental.Repositories.Repository;
 using SmileDental.Services.Interfaces;
 using SmileDental.Utils;
 
 namespace SmileDental.Services
 {
-    public class DentistaService(ApiDbContext context, IActionLog actionLogger) : IDentistInterface, IGetNombre
-    {
-        private readonly ApiDbContext _context = context;
+    public class DentistaService
+        (
+          DentistaRepository dentistaRepository
+        , CitaRepository citaRepository
+        , PacienteRepository pacienteRepository
+        , IActionLog actionLogger
+        ) 
+        : IDentistInterface, IGetNombre
+     {
+        
         private readonly IActionLog _actionLogger = actionLogger;
+        private readonly DentistaRepository _dentistaRepository = dentistaRepository;
+        private readonly CitaRepository _citaRepository = citaRepository;
+        private readonly PacienteRepository _pacienteRepository = pacienteRepository;
 
         public async Task<string> GetNombre(int id)
         {
-            string nombre = await _context.Dentistas
-                .Where(d => d.Id == id)
-                .Select(d => $"{d.Nombre} {d.Apellido}")
-                .FirstOrDefaultAsync();
-
-            return nombre;
+          return await _dentistaRepository.GetNombreDentistaPorId(id);
         }
 
-        public async Task<int> NumeroDePaginas(int dentistaId)
+        public Task<int> NumeroDePaginas(int dentistaId)
         {
-            List<Cita> citas = await _context.Citas.Where(c => c.DentistaId == dentistaId).ToListAsync();
-            return  Enumerador.numeroDePaginas(citas.Count);
-
+            throw new NotImplementedException();
         }
 
-        public async Task<bool> PacienteEstaRegistrado(string dniPaciente)
+        public Task<bool> PacienteEstaRegistrado(string dniPaciente)
         {
-            try
-            {
-                bool dniValido = StringManager.ValidaDni(dniPaciente);
-                if (!dniValido)
-                {
-                    return false;
-                }
-                var paciente = await _context.Pacientes.FirstOrDefaultAsync(p => p.Dni == dniPaciente);
-                return paciente != null;
-            }
-            catch(Exception)
-            {
-                return false;
-            }
+            throw new NotImplementedException();
         }
-
 
         public async Task<bool> SubirInformeCita(SubirCitaDTO subirCitaDTO)
         {
@@ -58,110 +48,59 @@ namespace SmileDental.Services
 
             if (result.Success)
             {
-                // Aquí actualizaríamos la base de datos con result.FileName
-                var cita = await _context.Citas.FindAsync(subirCitaDTO.citaId);
+                var cita = await _citaRepository.GetCitaByIdAsync(subirCitaDTO.citaId);
                 cita.SetURLCita(result.FileName);
-                
+                await _citaRepository.UpdateCitaAsync(cita);
 
+                /*
                 int idDentista = await _context.Citas.Where(c => c.Id == subirCitaDTO.citaId)
                     .Select(c => c.DentistaId)
                     .FirstOrDefaultAsync();
                 //await _actionLogger.LogearAccion(idDentista, "Dentista", $"El dentista con id: {idDentista} ha subido el informe :{subirCitaDTO.citaId}");
 
                 await _context.SaveChangesAsync();
+                */
                 return true;
             }
-
-            Log.Error($"Error al subir archivo: {result.Message}");
             return false;
         }
 
-        public async Task<List<Cita>> VerCitas(int dentistaId, int pagina)
+        public async Task<IEnumerable<Cita>> VerCitas(int dentistaId, int pagina)
         {
-            
-            try
-            {
-                int citasPorPagina = 10;
-                List<Cita> citas = await _context.Citas
-                    .Where(c => c.DentistaId == dentistaId)
-                    .OrderByDescending(c => c.Fecha) 
-                    .Skip((pagina - 1) * citasPorPagina) 
-                    .Take(citasPorPagina) 
-                    .ToListAsync();
-
-                return citas;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Error al obtener las citas del dentista {dentistaId}: {e.Message}");
-                return [];
-            }
+           var citas = await _citaRepository.GetCitasByOdontologoIdAsync(dentistaId, pagina);
+           return citas;
         }
 
         public async Task<List<CitaPacienteDTO>> verCitasPaciente(string dniPaciente)
         {
-            try
-            {
+          
                 bool DniValido = StringManager.ValidaDni(dniPaciente);
                 if (!DniValido)
                 {
                     throw new ArgumentException("DNI no válido", nameof(dniPaciente));
                 }
 
-                var citas = await _context.Citas
-                    .Where(c => c.Paciente.Dni == dniPaciente).ToListAsync();
-
-                var citasDTO = new List<CitaPacienteDTO>();
-
-                foreach(var cita in citas)
-                {
-                    citasDTO.Add(new CitaPacienteDTO
-                    {
-                        citaId = cita.Id,
-                        fecha = cita.Fecha,
-                        hora = cita.Hora,
-                        nombreInteresado = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Nombre).FirstOrDefaultAsync(),
-                        apellidoInteresado = await _context.Dentistas.Where(d => d.Id == cita.DentistaId).Select(d => d.Apellido).FirstOrDefaultAsync(),
-                        urlCita = cita.URLCita
-                    });
-                }
-
-                return citasDTO;
-
-            }
-            catch(Exception e)
-            {
-                Log.Error($"Error al obtener las citas del paciente {dniPaciente}: {e.Message}");
-                return new List<CitaPacienteDTO>();
-            }
+                return (List<CitaPacienteDTO>)await _citaRepository.GetCitasByPacienteDNI(dniPaciente);
         }
 
         public async Task<List<CitaPacienteDTO>> VerCitasPorFecha(int dentistaId, DateTime fecha)
         {
-            try
+            var citas = await _citaRepository.GetCitasByFechaAndDentistaId(fecha, dentistaId) ??
+                throw new ArgumentException("No hay citas para esa fecha");
+            List<CitaPacienteDTO> citasDTO = new List<CitaPacienteDTO>();
+            foreach (var cita in citas)
             {
-                var citas = await _context.Citas.Where(c => c.DentistaId == dentistaId && c.Fecha == fecha).ToListAsync();
-                var citasDTO = new List<CitaPacienteDTO>();
-                foreach (var cita in citas)
+                citasDTO.Add(new CitaPacienteDTO
                 {
-                    citasDTO.Add(new CitaPacienteDTO
-                    {
-                        citaId = cita.Id,
-                        fecha = cita.Fecha,
-                        hora = cita.Hora,
-                        nombreInteresado = _context.Pacientes.Where(p => p.Id == cita.PacienteId).Select(p => p.Nombre).FirstOrDefault(),
-                        apellidoInteresado = _context.Pacientes.Where(p => p.Id == cita.PacienteId).Select(p => p.Apellido).FirstOrDefault(),
-                        urlCita = cita.URLCita
-                    });
-                }
-                //await _actionLogger.LogearAccion(dentistaId, "Dentista", $"El dentista con id: {dentistaId} ha consultado las citas del día {fecha.ToString("dd/MM/yyyy")}");
-                return citasDTO;
+                    citaId = cita.Id,
+                    nombreInteresado = cita.Paciente.Nombre,
+                    apellidoInteresado = cita.Paciente.Apellido,
+                    fecha = cita.Fecha,
+                    hora = cita.Hora,
+                    urlCita = cita.URLCita
+                });
             }
-            catch (Exception e)
-            {
-                Log.Error($"Error al obtener las citas por fecha para el dentista {dentistaId}: {e.Message}");
-                return new List<CitaPacienteDTO>();
-            }
+            return citasDTO;
         }
     }
 }

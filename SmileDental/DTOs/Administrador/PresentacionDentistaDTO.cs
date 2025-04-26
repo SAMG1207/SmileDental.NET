@@ -2,11 +2,11 @@
 {
     public class PresentacionDentistaDTO
     {
-        public string nombre { get; set; }
-        public string apellido { get; set; }
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
 
-        public string urlFoto { get; set; }
+        public string UrlFoto { get; set; }
 
-        public string especialidad { get; set; }
+        public string Especialidad { get; set; }
     }
 }

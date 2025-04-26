@@ -1,4 +1,5 @@
-﻿using SmileDental.Models;
+﻿using SmileDental.DTOs.Administrador;
+using SmileDental.Models;
 
 namespace SmileDental.Repositories.Interfaces
 {
@@ -15,6 +16,14 @@ namespace SmileDental.Repositories.Interfaces
         Task<bool> ActivarDentista(int id);
 
         Task<IEnumerable<int>> GetDisponibilidadDeDentistasGeneralesPorFechaYHora(DateTime fecha, int hora);
+
+        Task<string> GetNombreDentistaPorId(int id);
+
+        Task<Dentista> GetDentistaByEmail(string email);
+
+        Task<Dentista> GetAdministradorByEmail(string email);
+
+        Task<IEnumerable<PresentacionDentistaDTO>> GetPresentacionDentistasNoGenerales();
         /*
 
         Task<IEnumerable<int>> GetDentistasGeneralesIds();

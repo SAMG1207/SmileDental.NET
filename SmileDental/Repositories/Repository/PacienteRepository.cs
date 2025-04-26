@@ -63,5 +63,17 @@ namespace SmileDental.Repositories.Repository
                 .Select(p => p.Nombre + " " + p.Apellido)
                 .FirstOrDefaultAsync() ?? throw new Exception("Paciente no registrado");
         }
+
+        public async Task<Paciente> GetPacienteByEmail(string email)
+        {
+            return await _context.Pacientes
+                .FirstOrDefaultAsync(p => p.Email == email) ?? throw new Exception("Paciente no registrado");
+        }
+
+        public async Task<Paciente> GetPacienteByDNI(string dni)
+        {
+             return await _context.Pacientes
+                .FirstOrDefaultAsync(p => p.Dni == dni) ?? throw new Exception("Paciente no registrado");
+        }
     }
 }
